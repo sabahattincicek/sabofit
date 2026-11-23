@@ -2,6 +2,15 @@
 
 > En son yapılan iş en üstte. Format: `## YYYY-MM-DD HH:MM` + madde madde yapılanlar.
 
+## 2026-11-24 04:30
+- **Web uygulaması (PWA), v0.3:**
+  - `manifest.webmanifest` (standalone, portre, koyu tema, Türkçe), `icons/` (SVG + 192/512/maskable PNG, apple-touch-icon, favicon; headless Chrome ile SVG'den üretildi).
+  - `sw.js` service worker: sayfa için önce ağ (güncellemeler hemen gelir) sonra önbellek; simge/manifest için önbellek; başka sitelere (yapay zekâ API'leri, esm.sh) dokunmuyor → uygulama internetsiz de açılıyor (yapay zekâ özellikleri hariç).
+  - `index.html`: manifest/ikon/iOS meta etiketleri, durum çubuğu için güvenli alan boşluğu, çekip yenileme (overscroll) kapalı.
+  - Ayarlar → Genel: "Uygulama olarak yükle" satırı. Android/Chrome'da "Yükle" butonu (`beforeinstallprompt`), iOS'ta Safari "Ana Ekrana Ekle" talimatı, yüklüyse "✓ Uygulama olarak çalışıyor".
+- **Hata düzeltmesi:** Hiç kaydı olmayan ilk açılışta `settings.prompts` tanımsız olduğu için Ayarlar sayfası çöküyordu (prompt düzenleyici eklendiğinden beri). `load()` artık varsayılanları da `normalizeData`'dan geçiriyor.
+- Test: yerel sunucuda temiz profille konsol hatası yok; service worker kuruldu ve tüm uygulama dosyalarını önbelleğe aldı.
+
 ## 2026-11-24 04:00
 - Git reposu oluşturuldu (`main`), `.gitignore` eklendi. Yayın öncesi dosyalarda API anahtarı taraması yapıldı (temiz).
 - GitHub'a **public** repo olarak gönderildi: https://github.com/sabahattincicek/sabofit

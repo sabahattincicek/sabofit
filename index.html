@@ -4,6 +4,15 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0f1115">
+<meta name="description" content="Kişisel antrenman takibi — yapay zekâ ile haftalık program ve analiz">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/svg+xml" href="icons/icon.svg">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="SaboFit">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>SaboFit</title>
 <style>
   :root {
@@ -491,6 +500,10 @@
   }
   .user-note b { display: block; font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 3px; }
   .day.future .d-num { opacity: .9; }
+  /* Uygulama (standalone) görünümü: durum çubuğu altında kalmasın, çekince sayfa yenilenmesin */
+  .topbar { padding-top: calc(14px + env(safe-area-inset-top)); }
+  html, body { overscroll-behavior-y: none; }
+  button, .nav-item, .day, .chip { -webkit-user-select: none; user-select: none; }
   #prompt-editor details summary { padding: 14px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; list-style: none; }
   #prompt-editor details summary::-webkit-details-marker { display: none; }
   #prompt-editor details[open] summary .chev { transform: rotate(180deg); }
@@ -682,6 +695,10 @@
 
     <div class="section-title">Genel</div>
     <section class="card set-group">
+      <div class="row-item" id="install-row">
+        <div><div class="rt">Uygulama olarak yükle</div><div class="rs" id="install-text">Ana ekrana ekleyip tam ekran uygulama gibi kullan</div></div>
+        <button class="small-btn" id="install-btn" hidden>Yükle</button>
+      </div>
       <div class="row-item">
         <div class="rt">Ağırlık birimi</div>
         <div class="seg" style="width:120px" data-k="unit"><button data-v="kg">kg</button><button data-v="lb">lb</button></div>
@@ -743,7 +760,7 @@
 
 // ---------- Sabitler ve yardımcılar ----------
 const STORE_KEY = 'sabofit:v1';
-const APP_VERSION = '0.2';
+const APP_VERSION = '0.3';
 const SDK_URL = 'https://esm.sh/@anthropic-ai/sdk@1.7.0';
 const DN = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'];
 const DNL = ['Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi', 'Pazar'];
@@ -810,7 +827,7 @@ function normalizeData(d) {
 }
 function load() {
   try { const d = JSON.parse(localStorage.getItem(STORE_KEY)); if (d) return normalizeData(d); } catch (e) { console.error(e); }
-  return defaults();
+  return normalizeData(defaults()); // ilk açılış: tüm alanlar (prompts, keys, models...) eksiksiz olsun
 }
 let S = load();
 function save() {
@@ -2027,8 +2044,32 @@ document.querySelectorAll('.nav-item[data-page]').forEach(b => b.addEventListene
   window.scrollTo(0, 0);
 }));
 
+// ---------- Web uygulaması (PWA): kurulum ve internetsiz çalışma ----------
+const isStandalone = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+let installEvt = null;
+function renderInstall() {
+  const t = $('install-text'), b = $('install-btn');
+  b.hidden = true;
+  if (isStandalone()) t.textContent = '✓ Uygulama olarak çalışıyor';
+  else if (installEvt) { t.textContent = 'Ana ekrana ekleyip tam ekran uygulama gibi kullan'; b.hidden = false; }
+  else if (isIOS) t.textContent = 'Safari\'de alttaki Paylaş (□↑) düğmesine bas → "Ana Ekrana Ekle"';
+  else t.textContent = 'Tarayıcı menüsünden (⋮) "Uygulamayı yükle" veya "Ana ekrana ekle"yi seç';
+}
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); installEvt = e; renderInstall(); });
+window.addEventListener('appinstalled', () => { installEvt = null; renderInstall(); toast('SaboFit yüklendi ✓'); });
+$('install-btn').onclick = async () => {
+  if (!installEvt) return;
+  installEvt.prompt();
+  await installEvt.userChoice; installEvt = null; renderInstall();
+};
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+  navigator.serviceWorker.register('sw.js').catch(e => console.warn('Service worker kaydedilemedi', e));
+}
+
 renderHome();
 renderSettings();
+renderInstall();
 autoCheck();
 </script>
 </body>
