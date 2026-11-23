@@ -1679,7 +1679,11 @@ function renderProgress() {
   const trained = stats.reduce((a, s) => a + s.days, 0), planned = stats.reduce((a, s) => a + s.planned, 0);
   const wts = weeks.map((w, i) => ({ w, v: stats[i].weight })).filter(x => x.v);
   const vols = stats.map(s => s.vol);
-  const firstVol = vols.find(v => v > 0) || 0, lastVol = [...vols].reverse().find(v => v > 0) || 0;
+  // Hacim değişimi: devam eden hafta hariç, kaydı olan ilk 2 ve son 2 haftanın ortalaması (yarım haftalar oranı şişirmesin)
+  const doneVols = weeks.map((w, i) => w < cur ? vols[i] : 0).filter(v => v > 0);
+  const avg = a => a.length ? a.reduce((x, y) => x + y, 0) / a.length : 0;
+  const k2 = doneVols.length >= 4 ? 2 : 1;
+  const firstVol = doneVols.length >= 2 ? avg(doneVols.slice(0, k2)) : 0, lastVol = doneVols.length >= 2 ? avg(doneVols.slice(-k2)) : 0;
   let streak = 0;
   for (let k = all.length - 1; k >= 0; k--) {
     const st = weekStats(all[k]);
@@ -1690,7 +1694,7 @@ function renderProgress() {
   let html = `<div class="stats">
     <div class="stat"><div class="label">Antrenman</div><div class="value">${trained}<small> gün</small></div><div class="trend muted">${planned ? `${planned} planlı · %${Math.round(trained / planned * 100)}` : '&nbsp;'}</div></div>
     <div class="stat"><div class="label">Kilo</div><div class="value">${wDiff === null ? '—' : (wDiff > 0 ? '+' : wDiff < 0 ? '−' : '') + Math.abs(wDiff)}<small> ${esc(unit())}</small></div><div class="trend muted">${wts.length >= 2 ? `${r1(wts[0].v)} → ${r1(wts.at(-1).v)}` : 'yeterli ölçüm yok'}</div></div>
-    <div class="stat"><div class="label">Haftalık hacim</div><div class="value">${firstVol && lastVol ? (lastVol >= firstVol ? '+' : '−') + Math.abs(Math.round((lastVol / firstVol - 1) * 100)) : '—'}<small> %</small></div><div class="trend muted">${firstVol ? `${r1(firstVol / 1000)} → ${r1(lastVol / 1000)} ton` : '&nbsp;'}</div></div>
+    <div class="stat"><div class="label">Haftalık hacim</div><div class="value">${firstVol && lastVol ? (lastVol >= firstVol ? '+' : '−') + Math.abs(Math.round((lastVol / firstVol - 1) * 100)) : '—'}<small> %</small></div><div class="trend muted">${firstVol ? `${r1(firstVol / 1000)} → ${r1(lastVol / 1000)} ton/hafta` : 'en az 2 tam hafta gerekli'}</div></div>
     <div class="stat"><div class="label">Seri</div><div class="value">${streak}<small> hafta</small></div><div class="trend muted">eksiksiz program</div></div>
   </div>
   <section class="card"><div class="chart-head"><div><h3>Vücut ağırlığı</h3><p>Haftalık ortalama, ${esc(unit())}</p></div>
@@ -2010,8 +2014,9 @@ $('import-file').onchange = async e => {
     if (!d || typeof d.weeks !== 'object' || typeof d.logs !== 'object') throw new Error('format');
     if (!confirm('Yedek yüklenecek ve bu cihazdaki tüm kayıtların yerini alacak. Devam edilsin mi?')) return;
     const keys = S.settings.keys;
+    if (!d.settings) d.settings = S.settings; // ayar içermeyen yedek (ör. başka uygulamadan dönüştürülmüş): mevcut ayarlar korunur
     S = normalizeData(d); S.settings.keys = Object.assign({}, keys, S.settings.keys);
-    save(); renderSettings(); toast('Yedek yüklendi');
+    save(); renderSettings(); toast(`Yedek yüklendi · ${dataWeeks().length} hafta`);
   } catch { toast('Dosya okunamadı. Geçerli bir SaboFit yedeği seç.', true); }
 };
 $('b-copy').onclick = () => {

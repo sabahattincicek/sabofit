@@ -2,6 +2,15 @@
 
 > En son yapılan iş en üstte. Format: `## YYYY-MM-DD HH:MM` + madde madde yapılanlar.
 
+## 2026-11-24 05:15
+- **Eski uygulamadan veri taşıma (antrenman-defteri → SaboFit):** Kullanıcının eski yedeği (`Desktop/yedek.txt`, surum 2) bir kerelik, repoya girmeyen bir script ile SaboFit yedek formatına çevrildi → `Desktop/sabofit-yedek.json`.
+  - 7 hafta (5 Ekim – 22 Kasım), 32 gün, 422 set; programlar (gün başlığı, set×tekrar, AI egzersiz notları, kaslar Latince→Türkçe), gün notları → "Gün sonu notu", yemekler, kilo ölçümleri (2), 9 Kasım analizi (detaylı metin, "HAFTALIK NOT" maddeleri → öneriler, sonraki haftanın programı), 16 Kasım program notu → 9 Kasım analizine "Gelecek hafta için kararlar" olarak.
+  - Dolu her set "yapıldı" sayıldı. Plank'te tekrar = saniye, tek taraflı hareketler egzersiz notunda belirtildi. Boy (173 cm) aktarılmadı → kullanıcı Ayarlar'a girecek.
+  - Kullanıcının isteğiyle bu hafta (23 Kasım, geçen haftadan kopyalanmış) **atlandı**.
+- `index.html` düzeltmeleri:
+  - Yedek yükle: dosyada `settings` yoksa mevcut ayarlar korunuyor (önceden varsayılana dönüyordu). Bildirimde hafta sayısı gösteriliyor.
+  - Süreç → "Haftalık hacim": devam eden hafta hariç, ilk 2 ve son 2 kayıtlı haftanın ortalaması kıyaslanıyor (yarım ilk hafta yüzünden +%989 görünüyordu → +%103, 12.6 → 25.5 ton/hafta).
+
 ## 2026-11-24 04:30
 - **Web uygulaması (PWA), v0.3:**
   - `manifest.webmanifest` (standalone, portre, koyu tema, Türkçe), `icons/` (SVG + 192/512/maskable PNG, apple-touch-icon, favicon; headless Chrome ile SVG'den üretildi).
