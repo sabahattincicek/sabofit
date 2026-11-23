@@ -1,0 +1,2035 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f1115">
+<title>SaboFit</title>
+<style>
+  :root {
+    --bg: #0f1115;
+    --surface: #181b22;
+    --surface-2: #20242d;
+    --border: #2a2f3a;
+    --text: #e8eaf0;
+    --muted: #8a91a3;
+    --accent: #7c5cff;
+    --accent-soft: rgba(124, 92, 255, .15);
+    --ok: #2ecc8f;
+    --ok-soft: rgba(46, 204, 143, .15);
+    --radius: 14px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { background: var(--bg); color: var(--text); }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: 15px;
+    max-width: 480px;
+    margin: 0 auto;
+    padding-bottom: calc(80px + env(safe-area-inset-bottom));
+  }
+  button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+  input, textarea { font: inherit; color: var(--text); }
+
+  /* ---------- Üst bar ---------- */
+  .topbar {
+    position: sticky; top: 0; z-index: 10;
+    background: rgba(15, 17, 21, .92);
+    backdrop-filter: blur(10px);
+    padding: 14px 16px 10px;
+    border-bottom: 1px solid var(--border);
+  }
+  .week-row { display: flex; align-items: center; justify-content: space-between; }
+  .week-row h1 { font-size: 17px; font-weight: 700; }
+  .week-row .sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .icon-btn {
+    width: 36px; height: 36px; border-radius: 10px;
+    background: var(--surface); border: 1px solid var(--border);
+    display: grid; place-items: center; font-size: 18px; color: var(--muted);
+  }
+
+  /* ---------- Gün şeridi ---------- */
+  .days { display: grid; grid-template-columns: repeat(7, 1fr) 1.25fr; gap: 5px; margin-top: 12px; }
+  .day.analysis { background: var(--accent-soft); border-color: rgba(124, 92, 255, .45); }
+  .day.analysis .d-name { color: var(--accent); font-weight: 700; font-size: 10px; }
+  .day.analysis .d-num { color: var(--accent); font-size: 15px; }
+  .day.analysis.active { background: var(--accent); }
+  .day.analysis.active .d-name, .day.analysis.active .d-num { color: #fff; }
+  .day {
+    display: flex; flex-direction: column; align-items: center; gap: 2px;
+    padding: 8px 0; border-radius: 12px;
+    background: var(--surface); border: 1px solid var(--border);
+  }
+  .day .d-name { font-size: 11px; color: var(--muted); }
+  .day .d-num { font-size: 16px; font-weight: 700; }
+  .day .d-dot { width: 5px; height: 5px; border-radius: 50%; background: transparent; }
+  .day.done .d-dot { background: var(--ok); }
+  .day.rest .d-num { color: var(--muted); }
+  .day.today { border-color: var(--accent); }
+  .day.active { background: var(--accent); border-color: var(--accent); }
+  .day.active .d-name, .day.active .d-num { color: #fff; }
+
+  /* ---------- İçerik ---------- */
+  main { padding: 16px; display: flex; flex-direction: column; gap: 14px; }
+  .day-head { display: flex; justify-content: space-between; align-items: flex-end; }
+  .day-head h2 { font-size: 22px; font-weight: 800; }
+  .day-head .date { font-size: 13px; color: var(--muted); margin-top: 2px; }
+  .badge {
+    font-size: 12px; font-weight: 600; padding: 5px 10px; border-radius: 999px;
+    background: var(--accent-soft); color: var(--accent);
+  }
+
+  .progress { height: 6px; background: var(--surface-2); border-radius: 99px; overflow: hidden; }
+  .progress > span { display: block; height: 100%; background: var(--ok); border-radius: 99px; }
+  .progress-label { font-size: 12px; color: var(--muted); display: flex; justify-content: space-between; margin-top: 6px; }
+
+  .card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 14px;
+  }
+  .section-title {
+    font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+    color: var(--muted); margin: 8px 2px -4px;
+  }
+
+  /* Egzersiz kartı */
+  .ex-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+  .ex-name {
+    font-size: 16px; font-weight: 700; color: var(--text); text-decoration: none;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .ex-name::after { content: "↗"; font-size: 12px; color: var(--accent); }
+  .ex-name:active { color: var(--accent); }
+  .muscles { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 7px; }
+  .muscle {
+    font-size: 11px; font-weight: 600; text-decoration: none;
+    padding: 4px 8px; border-radius: 999px;
+    background: var(--surface-2); color: #b9a8ff; border: 1px solid var(--border);
+  }
+  .muscle:active { background: var(--accent-soft); border-color: var(--accent); }
+  .ex-target { font-size: 12px; color: var(--muted); margin-top: 7px; }
+  .ex-menu { color: var(--muted); font-size: 20px; line-height: 1; padding: 0 4px; }
+
+  .sets { margin-top: 12px; display: flex; flex-direction: column; gap: 6px; }
+  .set-row, .set-header {
+    display: grid; grid-template-columns: 34px 1fr 1fr 1fr 40px; gap: 8px; align-items: center;
+  }
+  .set-header { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; padding: 0 2px; }
+  .set-header span:not(:first-child) { text-align: center; }
+  .set-no {
+    width: 28px; height: 28px; border-radius: 8px; background: var(--surface-2);
+    display: grid; place-items: center; font-size: 13px; font-weight: 700; color: var(--muted);
+  }
+  .prev { font-size: 12px; color: var(--muted); text-align: center; }
+  .set-row input {
+    width: 100%; height: 38px; text-align: center;
+    background: var(--surface-2); border: 1px solid transparent; border-radius: 10px;
+    font-size: 15px; font-weight: 600; outline: none;
+  }
+  .set-row input:focus { border-color: var(--accent); }
+  .check {
+    width: 38px; height: 38px; border-radius: 10px;
+    background: var(--surface-2); display: grid; place-items: center;
+    font-size: 16px; color: var(--muted);
+  }
+  .set-row.done input { background: var(--ok-soft); color: var(--ok); }
+  .set-row.done .check { background: var(--ok); color: #0f1115; font-weight: 800; }
+
+  .ex-actions { display: flex; gap: 8px; margin-top: 12px; }
+  .chip {
+    flex: 1; height: 36px; border-radius: 10px;
+    border: 1px dashed var(--border); color: var(--muted); font-size: 13px; font-weight: 600;
+  }
+  .chip.note-on { border-style: solid; border-color: var(--accent); color: var(--accent); }
+
+  .ex-note {
+    display: none; margin-top: 10px; width: 100%; min-height: 60px; resize: vertical;
+    background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px;
+    padding: 10px; font-size: 14px; outline: none;
+  }
+  .ex-note.show { display: block; }
+  .ex-note:focus { border-color: var(--accent); }
+
+  /* ---------- Hafta analizi ---------- */
+  .ai-status {
+    display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted);
+  }
+  .ai-status .pulse { width: 8px; height: 8px; border-radius: 50%; background: var(--ok); }
+  .stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .stat { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; }
+  .stat .label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+  .stat .value { font-size: 22px; font-weight: 800; margin-top: 4px; }
+  .stat .value small { font-size: 13px; color: var(--muted); font-weight: 600; }
+  .stat .trend { font-size: 12px; margin-top: 2px; }
+  .up { color: var(--ok); }
+  .down { color: #ff6b6b; }
+  .ai-text { font-size: 14px; line-height: 1.55; color: #cfd3de; }
+  .ai-text p + p { margin-top: 10px; }
+  .list { display: flex; flex-direction: column; gap: 10px; }
+  .list-item { display: flex; gap: 10px; font-size: 14px; line-height: 1.45; }
+  .list-item .mark {
+    flex: none; width: 24px; height: 24px; border-radius: 7px; display: grid; place-items: center;
+    font-size: 12px; font-weight: 800;
+  }
+  .mark.good { background: var(--ok-soft); color: var(--ok); }
+  .mark.warn { background: rgba(255, 184, 77, .15); color: #ffb84d; }
+  .mark.tip { background: var(--accent-soft); color: var(--accent); }
+  .pr-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 14px;
+  }
+  .pr-row:last-child { border-bottom: 0; padding-bottom: 0; }
+  .pr-row:first-child { padding-top: 0; }
+  .pr-row .from { color: var(--muted); font-size: 12px; }
+  .pr-row .to { font-weight: 700; }
+  .next-day {
+    display: flex; justify-content: space-between; padding: 9px 0;
+    border-bottom: 1px solid var(--border); font-size: 14px;
+  }
+  .next-day:last-child { border-bottom: 0; }
+  .next-day span:first-child { color: var(--muted); width: 44px; }
+  .next-day span:last-child { flex: 1; font-weight: 600; }
+  .primary-btn {
+    width: 100%; height: 50px; border-radius: var(--radius);
+    background: var(--accent); color: #fff; font-weight: 700; font-size: 15px;
+  }
+  .ghost-btn {
+    width: 100%; height: 44px; border-radius: var(--radius);
+    border: 1px solid var(--border); color: var(--muted); font-weight: 600;
+  }
+  .detail { padding: 0; overflow: hidden; }
+  .detail summary {
+    list-style: none; cursor: pointer; padding: 14px;
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    font-weight: 700; font-size: 15px;
+  }
+  .detail summary::-webkit-details-marker { display: none; }
+  .detail summary .hint { font-size: 12px; color: var(--muted); font-weight: 500; margin-top: 2px; }
+  .detail summary .chev {
+    flex: none; width: 28px; height: 28px; border-radius: 8px; background: var(--surface-2);
+    display: grid; place-items: center; color: var(--muted); transition: transform .2s;
+  }
+  .detail[open] summary .chev { transform: rotate(180deg); }
+  .detail[open] summary { border-bottom: 1px solid var(--border); }
+  .detail-body { padding: 14px; font-size: 14px; line-height: 1.6; color: #cfd3de; }
+  .detail-body h4 {
+    font-size: 13px; font-weight: 700; color: var(--text); margin: 16px 0 6px;
+  }
+  .detail-body h4:first-child { margin-top: 0; }
+  .detail-body p + p { margin-top: 8px; }
+  .detail-body ul { padding-left: 18px; }
+  .detail-body li + li { margin-top: 4px; }
+  .copy-btn {
+    margin-top: 14px; width: 100%; height: 38px; border-radius: 10px;
+    border: 1px solid var(--border); color: var(--muted); font-size: 13px; font-weight: 600;
+  }
+  [hidden] { display: none !important; }
+
+  /* ---------- Süreç sayfası ---------- */
+  .page-title { font-size: 22px; font-weight: 800; }
+  .range { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 12px; }
+  .range button {
+    height: 34px; border-radius: 10px; background: var(--surface); border: 1px solid var(--border);
+    font-size: 13px; font-weight: 600; color: var(--muted);
+  }
+  .range button.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+  .chart-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+  .chart-head h3 { font-size: 15px; font-weight: 700; }
+  .chart-head p { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .chart-head .big { font-size: 20px; font-weight: 800; text-align: right; }
+  .chart-head .big small { display: block; font-size: 12px; font-weight: 600; }
+  .chart { position: relative; }
+  .chart svg { display: block; width: 100%; height: auto; touch-action: pan-y; overflow: visible; }
+  .chart text { font-size: 10px; fill: var(--muted); font-family: inherit; }
+  .tip {
+    position: absolute; top: -6px; transform: translate(-50%, -100%); display: none;
+    background: #0b0d11; border: 1px solid var(--border); border-radius: 8px;
+    padding: 5px 9px; font-size: 12px; white-space: nowrap; pointer-events: none;
+  }
+  .tip b { font-weight: 700; }
+  .tip span { color: var(--muted); }
+
+  .lift {
+    display: grid; grid-template-columns: 1fr 84px 76px; align-items: center; gap: 10px;
+    padding: 11px 0; border-bottom: 1px solid var(--border);
+  }
+  .lift:first-child { padding-top: 0; }
+  .lift:last-child { border-bottom: 0; padding-bottom: 0; }
+  .lift .n { font-size: 14px; font-weight: 600; }
+  .lift .s { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .lift svg { width: 84px; height: 30px; display: block; overflow: visible; }
+  .lift .r { text-align: right; font-weight: 800; font-size: 15px; }
+  .lift .r small { display: block; font-size: 11px; font-weight: 600; }
+
+  .mbar { display: grid; grid-template-columns: 76px 1fr 30px; align-items: center; gap: 10px; font-size: 13px; }
+  .mbar + .mbar { margin-top: 9px; }
+  .mbar .track { height: 10px; background: var(--surface-2); border-radius: 99px; overflow: hidden; }
+  .mbar .fill { height: 100%; background: var(--accent); border-radius: 99px; }
+  .mbar .v { text-align: right; font-weight: 700; }
+
+  .streak { display: flex; flex-direction: column; gap: 5px; }
+  .streak-row { display: grid; grid-template-columns: 34px repeat(7, 1fr); gap: 5px; align-items: center; }
+  .streak-row .wk { font-size: 11px; color: var(--muted); }
+  .streak-row.head span { font-size: 10px; color: var(--muted); text-align: center; }
+  .cell { aspect-ratio: 1; border-radius: 5px; background: var(--surface-2); }
+  .cell.done { background: var(--ok); }
+  .cell.miss { background: transparent; border: 1.5px dashed #ff6b6b; }
+  .legend { display: flex; gap: 14px; margin-top: 12px; font-size: 12px; color: var(--muted); }
+  .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; }
+
+  .week-item {
+    display: flex; align-items: center; gap: 12px; width: 100%; text-align: left;
+    padding: 12px 0; border-bottom: 1px solid var(--border);
+  }
+  .week-item:first-child { padding-top: 0; }
+  .week-item:last-child { border-bottom: 0; padding-bottom: 0; }
+  .week-item .wn {
+    flex: none; width: 42px; height: 42px; border-radius: 11px; background: var(--surface-2);
+    display: grid; place-items: center; font-weight: 800; font-size: 15px;
+  }
+  .week-item .wi { flex: 1; min-width: 0; }
+  .week-item .wt { font-size: 14px; font-weight: 600; }
+  .week-item .ws { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .week-item .go { color: var(--muted); font-size: 18px; }
+
+  /* ---------- Geçmiş hafta detayı ---------- */
+  .back-row { display: flex; align-items: center; gap: 12px; }
+  .back-row .sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .tabs {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin-top: 12px;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 4px;
+  }
+  .tabs button { height: 34px; border-radius: 9px; font-size: 13px; font-weight: 700; color: var(--muted); }
+  .tabs button.on { background: var(--accent); color: #fff; }
+  .mini-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+  .mini-stats div {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+    padding: 10px 4px; text-align: center;
+  }
+  .mini-stats b { display: block; font-size: 16px; font-weight: 800; }
+  .mini-stats span { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+  .rest-row {
+    display: flex; justify-content: space-between; padding: 12px 14px; font-size: 14px;
+    color: var(--muted); background: var(--surface); border: 1px dashed var(--border); border-radius: var(--radius);
+  }
+  .ex-block + .ex-block { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); }
+  .ex-block .t { font-weight: 700; font-size: 14px; color: var(--text); }
+  .set-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .set-chips span {
+    font-size: 13px; font-weight: 600; padding: 5px 9px; border-radius: 8px;
+    background: var(--surface-2); color: var(--text);
+  }
+  .set-chips span.pr { background: var(--ok-soft); color: var(--ok); }
+  .ex-block .note {
+    margin-top: 8px; font-size: 13px; color: var(--muted); font-style: italic;
+    border-left: 2px solid var(--accent); padding-left: 8px;
+  }
+  .day-log { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 10px; }
+  .day-log .k { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+  .day-log .v { font-size: 14px; color: #cfd3de; margin-top: 2px; white-space: pre-line; }
+
+  /* ---------- Ayarlar ---------- */
+  .set-group { padding: 0; }
+  .set-group > .field, .set-group > .row-item { padding: 14px; }
+  .set-group > * + * { border-top: 1px solid var(--border); }
+  .field label, .field .lbl { display: block; font-size: 13px; font-weight: 600; margin-bottom: 7px; }
+  .field .help { font-size: 12px; color: var(--muted); margin-top: 7px; line-height: 1.4; }
+  .input, .select, .area {
+    width: 100%; height: 44px; padding: 0 12px;
+    background: var(--surface-2); border: 1px solid var(--border); border-radius: 11px;
+    font-size: 15px; outline: none; color: var(--text);
+  }
+  .area { height: auto; min-height: 96px; padding: 10px 12px; resize: vertical; line-height: 1.45; font-size: 14px; }
+  .input:focus, .select:focus, .area:focus { border-color: var(--accent); }
+  .select {
+    appearance: none; -webkit-appearance: none;
+    background-image: linear-gradient(45deg, transparent 50%, #8a91a3 50%), linear-gradient(135deg, #8a91a3 50%, transparent 50%);
+    background-position: calc(100% - 18px) 19px, calc(100% - 13px) 19px;
+    background-size: 5px 5px; background-repeat: no-repeat;
+  }
+  .key-wrap { position: relative; }
+  .key-wrap .input { padding-right: 52px; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 14px; }
+  .key-wrap button {
+    position: absolute; right: 6px; top: 6px; height: 32px; padding: 0 10px; border-radius: 8px;
+    background: var(--surface); font-size: 12px; font-weight: 600; color: var(--muted);
+  }
+  .conn {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  }
+  .conn .state { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--ok); font-weight: 600; }
+  .small-btn {
+    height: 36px; padding: 0 14px; border-radius: 10px; font-size: 13px; font-weight: 700;
+    border: 1px solid var(--accent); color: var(--accent); background: var(--accent-soft);
+  }
+  .row-item { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .row-item .rt { font-size: 14px; font-weight: 600; }
+  .row-item .rs { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .switch { position: relative; flex: none; width: 46px; height: 28px; }
+  .switch input { opacity: 0; width: 0; height: 0; }
+  .switch span {
+    position: absolute; inset: 0; border-radius: 99px; background: var(--surface-2);
+    border: 1px solid var(--border); transition: .2s;
+  }
+  .switch span::before {
+    content: ""; position: absolute; width: 22px; height: 22px; left: 2px; top: 2px;
+    border-radius: 50%; background: #c5cad6; transition: .2s;
+  }
+  .switch input:checked + span { background: var(--accent); border-color: var(--accent); }
+  .switch input:checked + span::before { transform: translateX(18px); background: #fff; }
+  .seg { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 4px; background: var(--surface-2); border-radius: 11px; padding: 4px; }
+  .seg button { height: 34px; border-radius: 8px; font-size: 13px; font-weight: 600; color: var(--muted); }
+  .seg button.on { background: var(--accent); color: #fff; }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .daypick { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; }
+  .daypick button {
+    height: 36px; border-radius: 9px; background: var(--surface-2); border: 1px solid var(--border);
+    font-size: 12px; font-weight: 700; color: var(--muted);
+  }
+  .daypick button.on { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+  .btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .btn-row button, .wide-btn {
+    height: 44px; border-radius: 11px; font-size: 14px; font-weight: 700;
+    background: var(--surface-2); border: 1px solid var(--border);
+  }
+  .wide-btn { width: 100%; }
+  .danger { color: #ff6b6b; border-color: rgba(255, 107, 107, .4) !important; background: rgba(255, 107, 107, .08) !important; }
+  .about { text-align: center; font-size: 12px; color: var(--muted); padding: 6px 0 4px; line-height: 1.6; }
+
+  /* Günlük kayıt kartları */
+  .log-head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .log-icon {
+    width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center;
+    background: var(--surface-2); font-size: 17px;
+  }
+  .log-head h3 { font-size: 15px; font-weight: 700; }
+  .log-head p { font-size: 12px; color: var(--muted); }
+
+  .weight-row { display: flex; align-items: center; gap: 10px; }
+  .weight-input {
+    flex: 1; height: 52px; text-align: center; font-size: 24px; font-weight: 800;
+    background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px; outline: none;
+  }
+  .weight-input:focus { border-color: var(--accent); }
+  .unit { font-size: 15px; color: var(--muted); font-weight: 600; }
+  .delta { font-size: 12px; color: var(--ok); margin-top: 8px; }
+
+  .log-text {
+    width: 100%; min-height: 84px; resize: vertical;
+    background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px;
+    padding: 12px; font-size: 14px; line-height: 1.45; outline: none;
+  }
+  .log-text:focus { border-color: var(--accent); }
+  .log-text::placeholder, .ex-note::placeholder { color: #5d6475; }
+
+  /* ---------- Alt navigasyon ---------- */
+  .bottom-nav {
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 20;
+    max-width: 480px; margin: 0 auto;
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    background: rgba(24, 27, 34, .96); backdrop-filter: blur(10px);
+    border-top: 1px solid var(--border);
+    padding: 8px 8px calc(8px + env(safe-area-inset-bottom));
+  }
+  .nav-item {
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+    padding: 6px 0; border-radius: 12px; color: var(--muted); font-size: 11px; font-weight: 600;
+  }
+  .nav-item svg { width: 22px; height: 22px; }
+  .nav-item.active { color: var(--accent); background: var(--accent-soft); }
+</style>
+<style>
+  .empty { text-align: center; padding: 26px 18px; }
+  .empty .ico { font-size: 34px; }
+  .empty h3 { font-size: 16px; margin-top: 8px; }
+  .empty p { font-size: 13px; color: var(--muted); margin: 6px 0 16px; line-height: 1.45; }
+  .empty .primary-btn + .ghost-btn { margin-top: 8px; }
+  .overlay {
+    position: fixed; inset: 0; z-index: 50; background: rgba(8, 9, 12, .8);
+    display: grid; place-items: center; backdrop-filter: blur(4px);
+  }
+  .overlay .box {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+    padding: 22px; width: min(320px, calc(100% - 32px)); text-align: center;
+  }
+  .overlay .box b { font-size: 15px; }
+  .overlay .box p { font-size: 13px; color: var(--muted); margin-top: 6px; line-height: 1.4; }
+  .spinner {
+    width: 34px; height: 34px; border-radius: 50%; margin: 0 auto 12px;
+    border: 3px solid var(--surface-2); border-top-color: var(--accent); animation: spin 1s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .toast {
+    position: fixed; left: 50%; transform: translateX(-50%); z-index: 60;
+    bottom: calc(88px + env(safe-area-inset-bottom));
+    background: #0b0d11; border: 1px solid var(--border); border-radius: 12px;
+    padding: 10px 14px; font-size: 13px; max-width: calc(100% - 32px); width: max-content;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, .4);
+  }
+  .toast.err { border-color: #ff6b6b; color: #ffb3b3; }
+  .banner {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    background: rgba(255, 184, 77, .1); border: 1px solid rgba(255, 184, 77, .35); color: #ffd59a;
+    border-radius: 12px; padding: 10px 12px; font-size: 13px;
+  }
+  .banner button { font-weight: 700; color: #ffb84d; flex: none; }
+  .chip.small { flex: 0 0 48px; }
+  .ex-cue { font-size: 12px; color: #b9a8ff; margin-top: 6px; }
+  .muted { color: var(--muted); }
+  .primary-btn:disabled { opacity: .55; }
+  .conn .state.bad { color: #ff6b6b; }
+  .conn .state.idle { color: var(--muted); }
+  .conn .dotc { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+  .overlay .box.ask { text-align: left; width: min(420px, calc(100% - 32px)); }
+  .ask h3 { font-size: 16px; font-weight: 800; }
+  .ask .area { margin-top: 12px; min-height: 120px; }
+  .ask .btn-row { margin-top: 12px; }
+  .ask .btn-row .go { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .user-note {
+    font-size: 13px; color: #cfd3de; background: var(--surface); border: 1px solid var(--border);
+    border-left: 3px solid var(--accent); border-radius: 10px; padding: 10px 12px; white-space: pre-line;
+  }
+  .user-note b { display: block; font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 3px; }
+  .day.future .d-num { opacity: .9; }
+  #prompt-editor details summary { padding: 14px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; list-style: none; }
+  #prompt-editor details summary::-webkit-details-marker { display: none; }
+  #prompt-editor details[open] summary .chev { transform: rotate(180deg); }
+  #prompt-editor .pbody { padding: 0 14px 14px; }
+  #prompt-editor .area { min-height: 260px; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 12.5px; }
+  .vars { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
+  .vars code { font-size: 11px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 6px; padding: 2px 6px; color: #b9a8ff; cursor: pointer; }
+  .tag-custom { font-size: 11px; font-weight: 700; color: #ffb84d; margin-left: 6px; }
+  .preview-text {
+    margin-top: 12px; max-height: 60vh; overflow: auto; white-space: pre-wrap; font-size: 12px; line-height: 1.45;
+    background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; padding: 10px;
+    font-family: ui-monospace, Menlo, Consolas, monospace; color: #cfd3de;
+  }
+  .cell.future { opacity: .35; }
+</style>
+</head>
+<body>
+
+<!-- ==================== ANA SAYFA ==================== -->
+<div id="page-home">
+  <header class="topbar">
+    <div class="week-row">
+      <button class="icon-btn" id="wk-prev" aria-label="Önceki hafta">‹</button>
+      <div style="text-align:center">
+        <h1 id="wk-title"></h1>
+        <div class="sub" id="wk-sub"></div>
+      </div>
+      <button class="icon-btn" id="wk-next" aria-label="Sonraki hafta">›</button>
+    </div>
+    <nav class="days" id="days"></nav>
+  </header>
+  <main id="view-day"></main>
+  <main id="view-analysis" hidden></main>
+</div>
+
+<!-- ==================== SÜREÇ ==================== -->
+<div id="page-progress" hidden>
+  <div id="progress-overview">
+    <header class="topbar">
+      <div class="page-title">Süreç</div>
+      <div class="sub" id="pr-sub" style="font-size:12px;color:var(--muted);margin-top:2px"></div>
+      <div class="range" id="range">
+        <button data-n="4">4 Hafta</button>
+        <button data-n="12" class="on">12 Hafta</button>
+        <button data-n="0">Tümü</button>
+      </div>
+    </header>
+    <main id="pr-main"></main>
+  </div>
+
+  <div id="week-detail" hidden>
+    <header class="topbar">
+      <div class="back-row">
+        <button class="icon-btn" id="week-back" aria-label="Geri">‹</button>
+        <div>
+          <div class="page-title" id="wd-title"></div>
+          <div class="sub" id="wd-date"></div>
+        </div>
+      </div>
+      <div class="tabs" id="wd-tabs">
+        <button class="on" data-tab="log">Antrenmanlar</button>
+        <button data-tab="ai">Analiz</button>
+      </div>
+    </header>
+    <main id="wd-log"></main>
+    <main id="wd-ai" hidden></main>
+  </div>
+</div>
+
+<!-- ==================== AYARLAR ==================== -->
+<div id="page-settings" hidden>
+  <header class="topbar"><div class="page-title">Ayarlar</div></header>
+  <main>
+    <div class="section-title">Yapay zekâ</div>
+    <section class="card set-group">
+      <div class="field">
+        <label for="s-provider">Sağlayıcı</label>
+        <select class="select" id="s-provider" data-k="provider">
+          <option value="anthropic">Anthropic (Claude)</option>
+          <option value="openai">OpenAI (ChatGPT)</option>
+          <option value="gemini">Google Gemini</option>
+          <option value="compat">OpenAI uyumlu (DeepSeek, OpenRouter, Groq…)</option>
+        </select>
+      </div>
+      <div class="field" id="f-base" hidden>
+        <label for="s-base">API adresi</label>
+        <input class="input" id="s-base" data-k="baseUrl" inputmode="url" autocomplete="off" spellcheck="false" placeholder="ör. https://openrouter.ai/api/v1">
+        <div class="help">Servisin OpenAI uyumlu adresi ( /chat/completions öncesi kısım). Bazı servisler tarayıcıdan doğrudan erişime izin vermeyebilir.</div>
+      </div>
+      <div class="field">
+        <label for="s-key">API anahtarı</label>
+        <div class="key-wrap">
+          <input class="input" id="s-key" data-pk="keys" type="password" autocomplete="off" spellcheck="false">
+          <button id="key-toggle" type="button">Göster</button>
+        </div>
+        <div class="help">Her sağlayıcının anahtarı ayrı saklanır. Anahtar sadece bu cihazda tutulur, yalnızca seçili sağlayıcıya gönderilir ve yedek dosyasına dahil edilmez.</div>
+      </div>
+      <div class="field">
+        <label for="s-model">Model</label>
+        <select class="select" id="s-model-sel" hidden></select>
+        <input class="input" id="s-model" data-pk="models" autocomplete="off" spellcheck="false" style="margin-top:8px">
+        <div class="help" id="s-model-help">Önce anahtarı girip "Test et"e bas; kullanılabilir modeller yukarıda liste olarak çıkar. İstersen model adını elle de yazabilirsin.</div>
+      </div>
+      <div class="field conn">
+        <span class="state idle" id="s-conn"><span class="dotc"></span><span>Test edilmedi</span></span>
+        <button class="small-btn" id="s-test">Test et</button>
+      </div>
+    </section>
+
+    <section class="card set-group">
+      <div class="row-item">
+        <div><div class="rt">Otomatik haftalık analiz</div><div class="rs">Belirlenen zamandan sonra uygulamayı ilk açışında analiz yapılır</div></div>
+        <label class="switch"><input type="checkbox" data-k="autoAnalysis"><span></span></label>
+      </div>
+      <div class="field">
+        <label>Analiz zamanı</label>
+        <div class="two">
+          <select class="select" data-k="autoDay" data-num>
+            <option value="6">Pazar</option>
+            <option value="7">Pazartesi</option>
+          </select>
+          <input class="input" type="time" data-k="autoTime">
+        </div>
+      </div>
+      <div class="row-item">
+        <div><div class="rt">Programı onayımla uygula</div><div class="rs">Kapalıysa yeni program sonraki haftaya otomatik yerleşir</div></div>
+        <label class="switch"><input type="checkbox" data-k="requireApproval"><span></span></label>
+      </div>
+      <div class="field">
+        <label>Koç talimatları</label>
+        <textarea class="area" data-k="coachNotes" placeholder="Örn. Kısa ve net yaz. Progresif yüklenmeyi ön planda tut. Sakatlık riskini her zaman öncelikli değerlendir."></textarea>
+        <div class="help">Her analizde ve program oluşturmada yapay zekâya bu metin de gönderilir.</div>
+      </div>
+    </section>
+
+    <div class="section-title">Yapay zekâ talimatları (prompt)</div>
+    <section class="card set-group" id="prompt-editor">
+      <div class="field"><div class="help" style="margin-top:0">Yapay zekâya her seferinde giden sabit metinler. <b>{süslü parantez}</b> içindeki yerlere o anki veriler otomatik konur. Bir şablonu tamamen silersen varsayılan kullanılır. Yapay zekânın cevap formatı (JSON yapısı) ayrıca otomatik eklenir, onu buraya yazmana gerek yok.</div></div>
+    </section>
+
+    <div class="section-title">Profil ve hedefler</div>
+    <section class="card set-group">
+      <div class="field">
+        <div class="two">
+          <div><label>Yaş</label><input class="input" inputmode="numeric" data-k="profile.age"></div>
+          <div><label>Boy (cm)</label><input class="input" inputmode="numeric" data-k="profile.height"></div>
+        </div>
+      </div>
+      <div class="field">
+        <span class="lbl">Ana hedef</span>
+        <div class="seg" data-k="profile.goal">
+          <button data-v="guc">Güç</button><button data-v="recomp">Kas + yağ yakımı</button><button data-v="hacim">Hacim</button>
+        </div>
+      </div>
+      <div class="field">
+        <div class="two">
+          <div><label>Hedef kilo</label><input class="input" inputmode="decimal" data-k="profile.targetWeight"></div>
+          <div><label>Deneyim</label>
+            <select class="select" data-k="profile.experience">
+              <option value="baslangic">Başlangıç</option>
+              <option value="orta">Orta (1–3 yıl)</option>
+              <option value="ileri">İleri</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="field">
+        <span class="lbl">Antrenman günleri</span>
+        <div class="daypick" id="s-days"></div>
+        <div class="help">Seans süresi:
+          <select class="select" data-k="profile.sessionMin" data-num style="display:inline-block;width:auto;height:32px;padding:0 30px 0 10px;font-size:13px;background-position:calc(100% - 15px) 13px,calc(100% - 10px) 13px;margin-left:6px">
+            <option value="45">45 dk</option><option value="60">60 dk</option><option value="75">75 dk</option><option value="90">90 dk</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label>Ekipman</label>
+        <select class="select" data-k="profile.equipment">
+          <option value="salon">Tam donanımlı salon</option>
+          <option value="ev">Ev (dumbbell + bar)</option>
+          <option value="vucut">Sadece vücut ağırlığı</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Sakatlıklar / kısıtlar</label>
+        <textarea class="area" style="min-height:70px" data-k="profile.injuries" placeholder="Örn. sol omuzda hassasiyet, bel fıtığı..."></textarea>
+      </div>
+    </section>
+
+    <div class="section-title">Genel</div>
+    <section class="card set-group">
+      <div class="row-item">
+        <div class="rt">Ağırlık birimi</div>
+        <div class="seg" style="width:120px" data-k="unit"><button data-v="kg">kg</button><button data-v="lb">lb</button></div>
+      </div>
+    </section>
+
+    <div class="section-title">Yedekleme ve veri</div>
+    <section class="card set-group">
+      <div class="row-item">
+        <div><div class="rt">Son yedek</div><div class="rs" id="s-lastbackup"></div></div>
+      </div>
+      <div class="row-item">
+        <div><div class="rt">Yedek hatırlatması</div><div class="rs">7 günden eski yedek varsa ana sayfada hatırlatır</div></div>
+        <label class="switch"><input type="checkbox" data-k="remindBackup"><span></span></label>
+      </div>
+      <div class="field">
+        <div class="btn-row">
+          <button id="b-export">⬇ Yedek indir</button>
+          <button id="b-import">⬆ Yedek yükle</button>
+        </div>
+        <div class="help">Tüm kayıtlar tek bir .json dosyası olarak indirilir. Başka cihaza geçerken bu dosyayı yükleyebilirsin.</div>
+      </div>
+      <div class="field">
+        <button class="wide-btn" id="b-copy">⧉ Tüm veriyi metin olarak kopyala</button>
+        <div class="help">Kayıtları başka bir sohbete elle yapıştırmak istersen.</div>
+      </div>
+      <div class="field">
+        <button class="wide-btn danger" id="b-delete">Tüm kayıtları sil</button>
+      </div>
+    </section>
+    <div class="about" id="s-about"></div>
+  </main>
+</div>
+
+<!-- ALT NAVİGASYON -->
+<nav class="bottom-nav">
+  <button class="nav-item active" data-page="home">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>
+    Ana Sayfa
+  </button>
+  <button class="nav-item" data-page="progress">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m7 14 4-4 3 3 5-6"/></svg>
+    Süreç
+  </button>
+  <button class="nav-item" data-page="settings">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+    Ayarlar
+  </button>
+</nav>
+
+<input type="file" id="import-file" accept="application/json,.json" hidden>
+
+<script>
+'use strict';
+/* =====================================================================
+   SaboFit — tek dosyalık antrenman takip uygulaması
+   Veriler: localStorage ("sabofit:v1")
+   ===================================================================== */
+
+// ---------- Sabitler ve yardımcılar ----------
+const STORE_KEY = 'sabofit:v1';
+const APP_VERSION = '0.2';
+const SDK_URL = 'https://esm.sh/@anthropic-ai/sdk@1.7.0';
+const DN = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'];
+const DNL = ['Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi', 'Pazar'];
+const MON = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
+const GOALS = { guc: 'Güç', recomp: 'Kas kazanırken yağ yakımı', hacim: 'Hacim (kas kütlesi)' };
+const EXP = { baslangic: 'Başlangıç', orta: 'Orta (1–3 yıl)', ileri: 'İleri' };
+const EQUIP = { salon: 'Tam donanımlı salon', ev: 'Ev (dumbbell + bar)', vucut: 'Sadece vücut ağırlığı' };
+
+const $ = id => document.getElementById(id);
+const pad = n => String(n).padStart(2, '0');
+const ymd = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+const parseD = s => { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d); };
+const addDays = (s, n) => { const d = parseD(s); d.setDate(d.getDate() + n); return ymd(d); };
+const mondayOf = d => { const x = new Date(d.getFullYear(), d.getMonth(), d.getDate()); x.setDate(x.getDate() - (x.getDay() + 6) % 7); return ymd(x); };
+const today = () => ymd(new Date());
+const fmtD = s => { const d = parseD(s); return `${d.getDate()} ${MON[d.getMonth()]}`; };
+const fmtDT = iso => { const d = new Date(iso); return `${d.getDate()} ${MON[d.getMonth()]} ${d.getFullYear()}, ${pad(d.getHours())}:${pad(d.getMinutes())}`; };
+const weekRange = w => {
+  const a = parseD(w), b = parseD(addDays(w, 6));
+  return a.getMonth() === b.getMonth()
+    ? `${a.getDate()} – ${b.getDate()} ${MON[b.getMonth()]} ${b.getFullYear()}`
+    : `${a.getDate()} ${MON[a.getMonth()]} – ${b.getDate()} ${MON[b.getMonth()]} ${b.getFullYear()}`;
+};
+const num = v => { const n = parseFloat(String(v ?? '').replace(',', '.')); return isFinite(n) ? n : 0; };
+const r1 = n => Math.round(n * 10) / 10;
+const uid = () => Math.random().toString(36).slice(2, 10);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const imgSearch = q => 'https://www.google.com/search?tbm=isch&q=' + encodeURIComponent(q);
+const unit = () => S.settings.unit;
+const curKey = () => String(S.settings.keys[S.settings.provider] || '').trim();
+const curModel = () => String(S.settings.models[S.settings.provider] || '').trim();
+const PROVIDERS = {
+  anthropic: { name: 'Anthropic', keyPh: 'sk-ant-...', modelPh: 'claude-opus-5-5' },
+  openai: { name: 'OpenAI', keyPh: 'sk-...', modelPh: 'Model adı (Test et ile listelenir)' },
+  gemini: { name: 'Google Gemini', keyPh: 'AIza...', modelPh: 'Model adı (Test et ile listelenir)' },
+  compat: { name: 'OpenAI uyumlu servis', keyPh: 'API anahtarı', modelPh: 'Model adı (Test et ile listelenir)' },
+};
+
+// ---------- Veri katmanı ----------
+function defaults() {
+  return {
+    version: 1,
+    settings: {
+      provider: 'anthropic', keys: {}, models: { anthropic: 'claude-opus-5-5' }, baseUrl: '',
+      autoAnalysis: true, autoDay: 6, autoTime: '21:00', requireApproval: true,
+      coachNotes: '', unit: 'kg', remindBackup: true, lastBackup: null,
+      profile: { age: '', height: '', goal: 'recomp', targetWeight: '', experience: 'orta', trainingDays: [0, 1, 3, 4], sessionMin: 60, equipment: 'salon', injuries: '' },
+    },
+    weeks: {},   // "YYYY-MM-DD" (pazartesi) -> { program, analysis }
+    logs: {},    // "YYYY-MM-DD" -> { ex: { [exId]: { name, sets:[{kg,reps,done}], note } }, weight, food, endNote }
+  };
+}
+function normalizeData(d) {
+  const def = defaults();
+  const s = Object.assign(def.settings, (d && d.settings) || {});
+  s.profile = Object.assign(defaults().settings.profile, (d && d.settings && d.settings.profile) || {});
+  s.prompts = Object.assign({ system: '', program: '', analysis: '' }, s.prompts);
+  s.keys = Object.assign({}, s.keys); s.models = Object.assign({ anthropic: 'claude-opus-5-5' }, s.models);
+  // v0.2 → çoklu sağlayıcı: eski tek anahtar/model alanlarını taşı
+  if (s.apiKey && !s.keys.anthropic) s.keys.anthropic = s.apiKey;
+  if (s.model) s.models.anthropic = s.model;
+  delete s.apiKey; delete s.model;
+  return { version: 1, settings: s, weeks: (d && d.weeks) || {}, logs: (d && d.logs) || {} };
+}
+function load() {
+  try { const d = JSON.parse(localStorage.getItem(STORE_KEY)); if (d) return normalizeData(d); } catch (e) { console.error(e); }
+  return defaults();
+}
+let S = load();
+function save() {
+  try { localStorage.setItem(STORE_KEY, JSON.stringify(S)); }
+  catch (e) { toast('Kaydedilemedi: tarayıcı hafızası dolu olabilir.', true); }
+}
+let saveTimer;
+function saveSoon() { clearTimeout(saveTimer); saveTimer = setTimeout(save, 300); }
+window.addEventListener('beforeunload', () => { clearTimeout(saveTimer); save(); });
+document.addEventListener('visibilitychange', () => { if (document.hidden) { clearTimeout(saveTimer); save(); } });
+
+const program = w => S.weeks[w] && S.weeks[w].program;
+const plan = (w, i) => { const p = program(w); return p ? p.days[i] : null; };
+function dayLog(date, create) {
+  if (!S.logs[date] && create) S.logs[date] = { ex: {}, weight: '', food: '', endNote: '' };
+  return S.logs[date];
+}
+function exLog(date, ex, create) {
+  const dl = dayLog(date, create);
+  if (!dl) return null;
+  if (!dl.ex[ex.id] && create) dl.ex[ex.id] = { name: ex.name, sets: [], note: '' };
+  return dl.ex[ex.id];
+}
+const doneSetsOf = l => (l ? l.sets.filter(s => s.done) : []);
+function dayDone(date) {
+  const dl = S.logs[date]; let sets = 0, vol = 0;
+  if (dl) for (const e of Object.values(dl.ex)) for (const s of doneSetsOf(e)) { sets++; vol += num(s.kg) * num(s.reps); }
+  return { sets, vol };
+}
+function hasContent(date) {
+  const dl = S.logs[date];
+  return !!dl && (dayDone(date).sets > 0 || !!String(dl.weight).trim() || !!dl.food.trim() || !!dl.endNote.trim());
+}
+function weekHasData(w) { for (let i = 0; i < 7; i++) if (hasContent(addDays(w, i))) return true; return false; }
+function weekStats(w) {
+  const p = program(w); let days = 0, sets = 0, vol = 0; const ws = [];
+  for (let i = 0; i < 7; i++) {
+    const d = addDays(w, i), dd = dayDone(d);
+    if (dd.sets) days++;
+    sets += dd.sets; vol += dd.vol;
+    const wt = S.logs[d] && num(S.logs[d].weight); if (wt) ws.push(wt);
+  }
+  return { days, planned: p ? p.days.filter(x => !x.rest).length : 0, sets, vol, weight: ws.length ? ws.reduce((a, b) => a + b) / ws.length : 0 };
+}
+function dataWeeks() {
+  const set = new Set(Object.keys(S.weeks).filter(w => S.weeks[w].program || S.weeks[w].analysis));
+  for (const d of Object.keys(S.logs)) if (hasContent(d)) set.add(mondayOf(parseD(d)));
+  return [...set].sort();
+}
+function weekNo(w) {
+  const all = dataWeeks(); const first = all.length ? all[0] : mondayOf(new Date());
+  return Math.round((parseD(w) - parseD(first)) / 864e5 / 7) + 1;
+}
+const weekLabel = w => { const n = weekNo(w); return n >= 1 ? `Hafta ${n}` : 'Hafta —'; };
+// Bir egzersizin bir haftadaki en iyi seti (önce kg, eşitse tekrar)
+function better(a, b) { return !b || num(a.kg) > num(b.kg) || (num(a.kg) === num(b.kg) && num(a.reps) > num(b.reps)); }
+function weekTops(w) {
+  const tops = {};
+  for (let i = 0; i < 7; i++) {
+    const dl = S.logs[addDays(w, i)]; if (!dl) continue;
+    for (const e of Object.values(dl.ex)) for (const s of doneSetsOf(e)) if (better(s, tops[e.name])) tops[e.name] = { kg: num(s.kg), reps: num(s.reps) };
+  }
+  return tops;
+}
+function prevTop(name, w) {
+  for (let k = 1; k <= 12; k++) { const t = weekTops(addDays(w, -7 * k))[name]; if (t) return t; }
+  return null;
+}
+function prevSets(name, date) {
+  for (let k = 1; k <= 70; k++) {
+    const dl = S.logs[addDays(date, -k)]; if (!dl) continue;
+    for (const e of Object.values(dl.ex)) if (e.name === name && doneSetsOf(e).length) return doneSetsOf(e);
+  }
+  return [];
+}
+function lastWeightBefore(date) {
+  for (let k = 1; k <= 120; k++) { const dl = S.logs[addDays(date, -k)]; if (dl && num(dl.weight)) return { kg: num(dl.weight), date: addDays(date, -k) }; }
+  return null;
+}
+function normalizeProgram(p) {
+  const days = (p && Array.isArray(p.days) ? p.days : []).slice(0, 7);
+  while (days.length < 7) days.push({ title: 'Dinlenme', focus: '', rest: true, exercises: [] });
+  return {
+    createdAt: new Date().toISOString(),
+    days: days.map(d => {
+      const ex = d.rest ? [] : (d.exercises || []).map(e => ({
+        id: uid(), name: String(e.name || 'Egzersiz'),
+        muscles: (e.muscles || []).map(m => ({ tr: String(m.tr || ''), en: String(m.en || m.tr || '') })),
+        sets: Math.min(10, Math.max(1, Math.round(num(e.sets)) || 3)),
+        repsMin: Math.max(1, Math.round(num(e.repsMin)) || 8),
+        repsMax: Math.max(1, Math.round(num(e.repsMax)) || Math.round(num(e.repsMin)) || 10),
+        restSec: Math.round(num(e.restSec)) || 90,
+        targetKg: num(e.targetKg), note: String(e.note || ''),
+      }));
+      return { title: String(d.title || (d.rest ? 'Dinlenme' : 'Antrenman')), focus: String(d.focus || ''), rest: !!d.rest || ex.length === 0, exercises: ex };
+    }),
+  };
+}
+
+// ---------- Arayüz yardımcıları ----------
+let toastTimer;
+function toast(msg, err) {
+  document.querySelectorAll('.toast').forEach(t => t.remove());
+  const t = document.createElement('div'); t.className = 'toast' + (err ? ' err' : ''); t.textContent = msg;
+  document.body.append(t); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.remove(), err ? 6000 : 3000);
+}
+function busy(title, text) {
+  const o = document.createElement('div'); o.className = 'overlay';
+  o.innerHTML = `<div class="box"><div class="spinner"></div><b>${esc(title)}</b><p>${esc(text)}</p></div>`;
+  document.body.append(o); return () => o.remove();
+}
+// Yapay zekâya gönderilmeden önce o haftaya özel ek not sorar. Vazgeçilirse null döner.
+function askNote(title, desc, initial) {
+  return new Promise(resolve => {
+    const o = document.createElement('div'); o.className = 'overlay';
+    o.innerHTML = `<div class="box ask"><h3>${esc(title)}</h3><p>${esc(desc)}</p>
+      <textarea class="area" placeholder="İsteğe bağlı. Örn: Bu hafta sadece 3 gün gidebilirim. Sağ omzum ağrıyor, omuz hareketlerini hafif tut. Cuma bacak olmasın.">${esc(initial || '')}</textarea>
+      <div class="btn-row"><button data-r="cancel">Vazgeç</button><button class="go" data-r="ok">✦ Gönder</button></div></div>`;
+    document.body.append(o);
+    const ta = o.querySelector('textarea'); ta.focus();
+    o.addEventListener('click', e => {
+      const b = e.target.closest('button');
+      if (!b && e.target !== o) return;
+      o.remove(); resolve(b && b.dataset.r === 'ok' ? ta.value.trim() : null);
+    });
+  });
+}
+const noteBlock = n => n ? `<div class="user-note"><b>Senin notun</b>${esc(n)}</div>` : '';
+function richText(t) {
+  let html = '', list = false;
+  const inline = s => esc(s).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>');
+  for (const raw of String(t || '').split('\n')) {
+    const l = raw.trim();
+    if (/^[-•*]\s+/.test(l)) { if (!list) { html += '<ul>'; list = true; } html += `<li>${inline(l.replace(/^[-•*]\s+/, ''))}</li>`; continue; }
+    if (list) { html += '</ul>'; list = false; }
+    if (!l) continue;
+    html += l.startsWith('#') ? `<h4>${inline(l.replace(/^#+\s*/, ''))}</h4>` : `<p>${inline(l)}</p>`;
+  }
+  return html + (list ? '</ul>' : '');
+}
+async function copyText(text) {
+  try { await navigator.clipboard.writeText(text); }
+  catch { const ta = document.createElement('textarea'); ta.value = text; document.body.append(ta); ta.select(); document.execCommand('copy'); ta.remove(); }
+  toast('Panoya kopyalandı');
+}
+const fmtRest = s => s >= 60 ? (s % 60 ? `${Math.floor(s / 60)} dk ${s % 60} sn` : `${s / 60} dk`) : `${s} sn`;
+const repsTxt = e => e.repsMin === e.repsMax ? e.repsMin : `${e.repsMin}–${e.repsMax}`;
+function diffTxt(cur, prev, fmt, inverse) {
+  if (!prev || !cur) return '<div class="trend muted">—</div>';
+  const d = cur - prev; if (Math.abs(d) < 1e-9) return '<div class="trend muted">değişim yok</div>';
+  const good = inverse ? d < 0 : d > 0;
+  return `<div class="trend ${good ? 'up' : 'down'}">${d > 0 ? '▲' : '▼'} ${fmt(Math.abs(d))} geçen hafta</div>`;
+}
+function analysisBlocks(a) {
+  return `
+    <div class="section-title">Özet</div>
+    <section class="card ai-text">${String(a.summary || '').split(/\n\s*\n/).map(p => `<p>${esc(p.trim())}</p>`).join('')}</section>
+    <details class="card detail">
+      <summary><div><div>Detaylı analiz</div><div class="hint">Yapay zekânın tam çıktısı</div></div><span class="chev">▾</span></summary>
+      <div class="detail-body">${richText(a.detailed)}<button class="copy-btn" data-act="copy-detail">⧉ Metni kopyala</button></div>
+    </details>
+    ${a.highlights && a.highlights.length ? `<div class="section-title">Notlar ve öneriler</div>
+    <section class="card list">${a.highlights.map(h => `<div class="list-item"><span class="mark ${h.type === 'good' ? 'good' : h.type === 'warn' ? 'warn' : 'tip'}">${h.type === 'good' ? '✓' : h.type === 'warn' ? '!' : 'i'}</span><span>${esc(h.text)}</span></div>`).join('')}</section>` : ''}`;
+}
+
+// =====================================================================
+//  ANA SAYFA
+// =====================================================================
+const ui = { week: mondayOf(new Date()), day: (new Date().getDay() + 6) % 7, view: 'day' };
+
+function renderHome() {
+  const w = ui.week;
+  $('wk-title').textContent = weekLabel(w);
+  $('wk-sub').textContent = weekRange(w) + (w === mondayOf(new Date()) ? ' · Bu hafta' : '');
+  let html = '';
+  for (let i = 0; i < 7; i++) {
+    const d = addDays(w, i), p = plan(w, i), cls = ['day'];
+    if (d === today()) cls.push('today');
+    if (ui.view === 'day' && ui.day === i) cls.push('active');
+    if (p && p.rest) cls.push('rest');
+    if (dayDone(d).sets) cls.push('done');
+    html += `<button class="${cls.join(' ')}" data-i="${i}"><span class="d-name">${DN[i]}</span><span class="d-num">${parseD(d).getDate()}</span><span class="d-dot"></span></button>`;
+  }
+  const hasA = S.weeks[w] && S.weeks[w].analysis;
+  html += `<button class="day analysis${ui.view === 'analysis' ? ' active' : ''}${hasA ? ' done' : ''}" data-i="a"><span class="d-name">Analiz</span><span class="d-num">✦</span><span class="d-dot"></span></button>`;
+  $('days').innerHTML = html;
+  $('view-day').hidden = ui.view !== 'day';
+  $('view-analysis').hidden = ui.view !== 'analysis';
+  if (ui.view === 'day') renderDay(); else renderAnalysis();
+}
+
+function backupBanner() {
+  const s = S.settings;
+  if (!s.remindBackup || !dataWeeks().length) return '';
+  if (s.lastBackup && Date.now() - new Date(s.lastBackup) < 7 * 864e5) return '';
+  return `<div class="banner"><span>${s.lastBackup ? 'Son yedeğin 7 günden eski.' : 'Henüz hiç yedek almadın.'}</span><button data-act="backup">Yedek al</button></div>`;
+}
+
+function renderDay() {
+  const w = ui.week, i = ui.day, date = addDays(w, i), prog = program(w), p = plan(w, i);
+  const isToday = date === today();
+  let html = backupBanner();
+  html += `<div class="day-head"><div><h2>${esc(p ? p.title : DNL[i])}</h2>
+    <div class="date">${DNL[i]}, ${fmtD(date)}${isToday ? ' · Bugün' : ''}</div></div>
+    ${p && p.focus ? `<span class="badge">${esc(p.focus)}</span>` : ''}</div>`;
+
+  if (!prog) {
+    const pw = addDays(w, -7), pa = S.weeks[pw] && S.weeks[pw].analysis;
+    html += `<section class="card empty"><div class="ico">🗓️</div><h3>Bu hafta için program yok</h3>
+      <p>Programı yapay zekâ hazırlar. Önce Ayarlar'da API anahtarını ve profilini doldur.</p>
+      ${pa && pa.nextProgram ? `<button class="primary-btn" data-act="apply-prev">✦ Geçen haftanın önerdiği programı uygula</button>
+        <button class="ghost-btn" data-act="gen-program">Yeni program oluştur</button>`
+        : `<button class="primary-btn" data-act="gen-program">✦ Yapay zekâ ile program oluştur</button>`}
+    </section>`;
+  } else if (p.rest) {
+    html += `<section class="card empty"><div class="ico">😴</div><h3>Dinlenme günü</h3><p>Bugün antrenman yok. Aşağıya kilonu ve notlarını yine de girebilirsin.</p></section>`;
+  } else {
+    let total = 0, done = 0;
+    const cards = p.exercises.map(ex => {
+      const l = exLog(date, ex, false) || { sets: [], note: '' };
+      const rows = Math.max(ex.sets, l.sets.length);
+      total += rows; done += doneSetsOf(l).length;
+      const prev = prevSets(ex.name, date);
+      let rowsHtml = '';
+      for (let k = 0; k < rows; k++) {
+        const s = l.sets[k] || { kg: '', reps: '', done: false }, pv = prev[k];
+        const phKg = pv ? pv.kg : (ex.targetKg || ''), phReps = pv ? pv.reps : ex.repsMax;
+        rowsHtml += `<div class="set-row${s.done ? ' done' : ''}" data-k="${k}">
+          <span class="set-no">${k + 1}</span><span class="prev">${pv ? `${esc(pv.kg)}×${esc(pv.reps)}` : '—'}</span>
+          <input inputmode="decimal" data-f="kg" value="${esc(s.kg)}" placeholder="${esc(phKg)}">
+          <input inputmode="numeric" data-f="reps" value="${esc(s.reps)}" placeholder="${esc(phReps)}">
+          <button class="check" aria-label="Set tamamlandı">✓</button></div>`;
+      }
+      return `<article class="card" data-ex="${ex.id}">
+        <div class="ex-head"><div>
+          <a class="ex-name" href="${imgSearch(ex.name + ' exercise proper form')}" target="_blank" rel="noopener">${esc(ex.name)}</a>
+          ${ex.muscles.length ? `<div class="muscles">${ex.muscles.map(m => `<a class="muscle" href="${imgSearch(m.en + ' muscle anatomy')}" target="_blank" rel="noopener">${esc(m.tr)}</a>`).join('')}</div>` : ''}
+          <div class="ex-target">Hedef: ${ex.sets} × ${repsTxt(ex)}${ex.targetKg ? ` · ${ex.targetKg} ${unit()}` : ''} · Dinlenme ${fmtRest(ex.restSec)}</div>
+          ${ex.note ? `<div class="ex-cue">💡 ${esc(ex.note)}</div>` : ''}
+        </div></div>
+        <div class="sets"><div class="set-header"><span>Set</span><span>Önceki</span><span>${esc(unit())}</span><span>Tekrar</span><span></span></div>${rowsHtml}</div>
+        <div class="ex-actions">
+          <button class="chip" data-act="add-set">+ Set ekle</button>
+          ${rows > ex.sets ? '<button class="chip small" data-act="del-set" aria-label="Son seti sil">−</button>' : ''}
+          <button class="chip${l.note ? ' note-on' : ''}" data-act="note">✎ ${l.note ? 'Not' : 'Not ekle'}</button>
+        </div>
+        <textarea class="ex-note${l.note ? ' show' : ''}" data-f="note" placeholder="Bu egzersizle ilgili not...">${esc(l.note)}</textarea>
+      </article>`;
+    }).join('');
+    const pct = total ? Math.round(done / total * 100) : 0;
+    html += `<div><div class="progress"><span style="width:${pct}%"></span></div>
+      <div class="progress-label"><span>${done} / ${total} set tamamlandı</span><span>%${pct}</span></div></div>
+      <div class="section-title">Egzersizler</div>${cards}`;
+  }
+
+  const dl = S.logs[date] || { weight: '', food: '', endNote: '' };
+  html += `<div class="section-title">Günlük kayıt</div>
+    <section class="card"><div class="log-head"><div class="log-icon">⚖️</div><div><h3>Kilo ölçümü</h3><p>Sabah, aç karnına</p></div></div>
+      <div class="weight-row"><input class="weight-input" inputmode="decimal" data-f="weight" value="${esc(dl.weight)}" placeholder="—"><span class="unit">${esc(unit())}</span></div>
+      <div class="delta" id="w-delta"></div></section>
+    <section class="card"><div class="log-head"><div class="log-icon">🍽️</div><div><h3>Bugün ne yedim?</h3><p>Öğünler, porsiyonlar, su</p></div></div>
+      <textarea class="log-text" data-f="food" placeholder="Kahvaltı: ...&#10;Öğle: ...&#10;Akşam: ...&#10;Ara öğün: ...">${esc(dl.food)}</textarea></section>
+    <section class="card"><div class="log-head"><div class="log-icon">🌙</div><div><h3>Gün sonu notu</h3><p>Enerji, uyku, ağrı, genel his</p></div></div>
+      <textarea class="log-text" data-f="endNote" placeholder="Bugün nasıl geçti?">${esc(dl.endNote)}</textarea></section>`;
+  $('view-day').innerHTML = html;
+  updateWeightDelta();
+}
+
+function updateWeightDelta() {
+  const el = $('w-delta'); if (!el) return;
+  const date = addDays(ui.week, ui.day), cur = num(S.logs[date] && S.logs[date].weight), prev = lastWeightBefore(date);
+  if (!cur || !prev) { el.textContent = ''; return; }
+  const d = r1(cur - prev.kg);
+  el.className = 'delta ' + (d <= 0 ? 'up' : 'down');
+  el.textContent = d === 0 ? `Değişim yok (${fmtD(prev.date)} ölçümüne göre)` : `${d < 0 ? '▼' : '▲'} ${Math.abs(d)} ${unit()} (${fmtD(prev.date)} ölçümüne göre)`;
+}
+
+function currentEx(card) {
+  const p = plan(ui.week, ui.day);
+  return p && p.exercises.find(e => e.id === card.dataset.ex);
+}
+
+// Ana sayfa olayları
+$('wk-prev').onclick = () => { ui.week = addDays(ui.week, -7); renderHome(); };
+$('wk-next').onclick = () => { ui.week = addDays(ui.week, 7); renderHome(); };
+$('days').onclick = e => {
+  const b = e.target.closest('.day'); if (!b) return;
+  if (b.dataset.i === 'a') ui.view = 'analysis'; else { ui.view = 'day'; ui.day = +b.dataset.i; }
+  renderHome(); window.scrollTo(0, 0);
+};
+$('view-day').addEventListener('input', e => {
+  const t = e.target, f = t.dataset.f; if (!f) return;
+  const date = addDays(ui.week, ui.day), card = t.closest('[data-ex]');
+  if (card) {
+    const ex = currentEx(card); if (!ex) return;
+    const l = exLog(date, ex, true);
+    if (f === 'note') l.note = t.value;
+    else {
+      const k = +t.closest('.set-row').dataset.k;
+      while (l.sets.length <= k) l.sets.push({ kg: '', reps: '', done: false });
+      l.sets[k][f] = t.value;
+    }
+  } else {
+    dayLog(date, true)[f] = t.value;
+    if (f === 'weight') updateWeightDelta();
+  }
+  saveSoon();
+});
+$('view-day').addEventListener('click', async e => {
+  const t = e.target.closest('button'); if (!t) return;
+  const act = t.dataset.act, card = t.closest('[data-ex]'), date = addDays(ui.week, ui.day);
+  if (act === 'backup') return exportBackup();
+  if (act === 'gen-program') {
+    const n = await askNote('Program oluştur', `${weekLabel(ui.week)} programı için yapay zekâya eklemek istediğin bir şey var mı? Bu not sadece bu hafta için geçerli.`);
+    if (n !== null) generateProgram(ui.week, n);
+    return;
+  }
+  if (act === 'apply-prev') return applyNext(addDays(ui.week, -7));
+  if (!card) return;
+  const ex = currentEx(card); if (!ex) return;
+  if (t.classList.contains('check')) {
+    const row = t.closest('.set-row'), k = +row.dataset.k, l = exLog(date, ex, true);
+    while (l.sets.length <= k) l.sets.push({ kg: '', reps: '', done: false });
+    const s = l.sets[k];
+    if (!s.done) { // boş bırakılan alanları öneriyle doldur
+      const [kgIn, repsIn] = row.querySelectorAll('input');
+      if (!String(s.kg).trim() && kgIn.placeholder) s.kg = kgIn.placeholder;
+      if (!String(s.reps).trim() && repsIn.placeholder) s.reps = repsIn.placeholder;
+    }
+    s.done = !s.done;
+  } else if (act === 'add-set') {
+    const l = exLog(date, ex, true);
+    while (l.sets.length < ex.sets) l.sets.push({ kg: '', reps: '', done: false });
+    l.sets.push({ kg: '', reps: '', done: false });
+  } else if (act === 'del-set') {
+    const l = exLog(date, ex, true); if (l.sets.length > ex.sets) l.sets.pop();
+  } else if (act === 'note') {
+    const n = card.querySelector('.ex-note'); n.classList.toggle('show'); t.classList.toggle('note-on');
+    if (n.classList.contains('show')) n.focus();
+    return;
+  } else return;
+  save();
+  const y = window.scrollY; renderHome(); window.scrollTo(0, y);
+});
+
+// ---------- Hafta analizi görünümü ----------
+function progressRows(w) {
+  const tops = weekTops(w), rows = [];
+  for (const [name, t] of Object.entries(tops)) {
+    const p = prevTop(name, w); if (!p) continue;
+    const cls = better(t, p) ? 'up' : better(p, t) ? 'down' : 'muted';
+    rows.push(`<div class="pr-row"><span>${esc(name)}</span><span><span class="from">${p.kg}×${p.reps} → </span><span class="to ${cls}">${t.kg}×${t.reps}</span></span></div>`);
+  }
+  return rows;
+}
+function renderAnalysis() {
+  const w = ui.week, st = weekStats(w), ps = weekStats(addDays(w, -7)), a = S.weeks[w] && S.weeks[w].analysis;
+  const nextW = addDays(w, 7);
+  let html = `<div class="day-head"><div><h2>Hafta Analizi</h2><div class="date">${weekLabel(w)} · ${weekRange(w)}</div></div><span class="badge">Yapay zekâ</span></div>`;
+  if (a) html += `<div class="ai-status"><span class="pulse"></span>Son analiz: ${fmtDT(a.createdAt)}</div>${noteBlock(a.extraNote)}`;
+  html += `<div class="stats">
+    <div class="stat"><div class="label">Antrenman</div><div class="value">${st.days}<small> / ${st.planned || '—'} gün</small></div>${st.planned && st.days >= st.planned ? '<div class="trend up">Program tamamlandı</div>' : '<div class="trend muted">&nbsp;</div>'}</div>
+    <div class="stat"><div class="label">Toplam set</div><div class="value">${st.sets}</div>${diffTxt(st.sets, ps.sets, v => v)}</div>
+    <div class="stat"><div class="label">Hacim</div><div class="value">${r1(st.vol / 1000)}<small> ton</small></div>${diffTxt(st.vol, ps.vol, v => '%' + Math.round(v / ps.vol * 100))}</div>
+    <div class="stat"><div class="label">Kilo (ort.)</div><div class="value">${st.weight ? r1(st.weight) : '—'}<small> ${esc(unit())}</small></div>${diffTxt(st.weight, ps.weight, v => r1(v) + ' ' + unit(), true)}</div>
+  </div>`;
+  const pr = progressRows(w);
+  if (a) {
+    html += analysisBlocks(a);
+    if (pr.length) html += `<div class="section-title">Gelişmeler</div><section class="card">${pr.join('')}</section>`;
+    if (a.nextProgram) {
+      html += `<div class="section-title">Gelecek hafta programı</div><section class="card">${a.nextProgram.days.map((d, i) =>
+        `<div class="next-day"><span>${DN[i]}</span><span${d.rest ? ' style="color:var(--muted)"' : ''}>${d.rest ? 'Dinlenme' : esc(d.title + (d.focus ? ' · ' + d.focus : ''))}</span></div>`).join('')}</section>`;
+      html += a.applied
+        ? `<button class="primary-btn" disabled>✓ ${weekLabel(nextW)} programına uygulandı</button>`
+        : `<button class="primary-btn" data-act="apply">✦ Programı ${weekLabel(nextW)}'e uygula</button>`;
+    }
+    html += `<button class="ghost-btn" data-act="analyze">Analizi yeniden oluştur</button>`;
+  } else {
+    if (pr.length) html += `<div class="section-title">Gelişmeler</div><section class="card">${pr.join('')}</section>`;
+    html += `<section class="card empty"><div class="ico">✦</div><h3>Bu hafta henüz analiz edilmedi</h3>
+      <p>${weekHasData(w) ? 'Yapay zekâ haftanın tüm kayıtlarını inceleyip özet, detaylı analiz ve gelecek haftanın programını hazırlar.' : 'Bu hafta için henüz kayıt yok.'}</p>
+      <button class="primary-btn" data-act="analyze"${weekHasData(w) ? '' : ' disabled'}>✦ Haftayı analiz et</button></section>`;
+  }
+  $('view-analysis').innerHTML = html;
+}
+const askAnalysisNote = (w, prev) => askNote('Haftayı analiz et',
+  `Analiz ve ${weekLabel(addDays(w, 7))} programı için eklemek istediğin bir şey var mı? Bu not sadece bu analiz ve sonraki haftanın planı için geçerli.`, prev);
+$('view-analysis').addEventListener('click', async e => {
+  const t = e.target.closest('button'); if (!t) return;
+  const a = S.weeks[ui.week] && S.weeks[ui.week].analysis;
+  if (t.dataset.act === 'analyze') {
+    const w = ui.week, n = await askAnalysisNote(w, a && a.extraNote);
+    if (n !== null) runAnalysis(w, false, n);
+  }
+  if (t.dataset.act === 'apply') applyNext(ui.week);
+  if (t.dataset.act === 'copy-detail' && a) copyText(a.detailed);
+});
+
+// =====================================================================
+//  YAPAY ZEKÂ
+// =====================================================================
+class UserErr extends Error {}
+let sdkMod = null;
+async function aiClient() {
+  const key = curKey();
+  if (!key) throw new UserErr("Önce Ayarlar'dan API anahtarını gir.");
+  if (!sdkMod) {
+    try { sdkMod = await import(SDK_URL); }
+    catch (e) { throw new UserErr('Yapay zekâ kütüphanesi yüklenemedi. İnternet bağlantını kontrol et.'); }
+  }
+  return new sdkMod.default({ apiKey: key, dangerouslyAllowBrowser: true });
+}
+function errMsg(e) {
+  console.error(e);
+  if (e instanceof UserErr) return e.message;
+  const m = sdkMod;
+  if (m) {
+    if (e instanceof m.AuthenticationError) return 'API anahtarı geçersiz.';
+    if (e instanceof m.PermissionDeniedError) return 'Bu anahtarın seçilen modele erişim izni yok.';
+    if (e instanceof m.NotFoundError) return 'Model bulunamadı.';
+    if (e instanceof m.RateLimitError) return 'İstek sınırına takıldı. Biraz sonra tekrar dene.';
+    if (e instanceof m.APIConnectionError) return 'Bağlantı kurulamadı. İnternetini kontrol et.';
+    if (e instanceof m.APIError) return `API hatası${e.status ? ' (' + e.status + ')' : ''}: ${e.message}`;
+  }
+  if (e instanceof SyntaxError) return 'Yapay zekânın yanıtı okunamadı. Tekrar dene.';
+  return 'Hata: ' + (e && e.message ? e.message : e);
+}
+
+const T_STR = { type: 'string' }, T_INT = { type: 'integer' }, T_NUM = { type: 'number' };
+const PROGRAM_SCHEMA = {
+  type: 'object', additionalProperties: false, required: ['days'],
+  properties: { days: { type: 'array', items: {
+    type: 'object', additionalProperties: false, required: ['title', 'focus', 'rest', 'exercises'],
+    properties: {
+      title: T_STR, focus: T_STR, rest: { type: 'boolean' },
+      exercises: { type: 'array', items: {
+        type: 'object', additionalProperties: false,
+        required: ['name', 'muscles', 'sets', 'repsMin', 'repsMax', 'restSec', 'targetKg', 'note'],
+        properties: {
+          name: T_STR,
+          muscles: { type: 'array', items: { type: 'object', additionalProperties: false, required: ['tr', 'en'], properties: { tr: T_STR, en: T_STR } } },
+          sets: T_INT, repsMin: T_INT, repsMax: T_INT, restSec: T_INT, targetKg: T_NUM, note: T_STR,
+        },
+      } },
+    },
+  } } },
+};
+const ANALYSIS_SCHEMA = {
+  type: 'object', additionalProperties: false, required: ['summary', 'detailed', 'highlights', 'nextProgram'],
+  properties: {
+    summary: T_STR, detailed: T_STR,
+    highlights: { type: 'array', items: { type: 'object', additionalProperties: false, required: ['type', 'text'], properties: { type: { type: 'string', enum: ['good', 'warn', 'tip'] }, text: T_STR } } },
+    nextProgram: PROGRAM_SCHEMA,
+  },
+};
+
+// ---------- Prompt şablonları (Ayarlar'dan düzenlenebilir) ----------
+// {değişken} yerlerine o anki veriler konur. Ayarlarda boş bırakılan şablon için varsayılan kullanılır.
+const DEFAULT_PROMPTS = {
+  system: `Sen deneyimli bir kuvvet ve kondisyon koçusun. Tek bir sporcunun antrenman kayıtlarını analiz ediyor ve haftalık antrenman programı yazıyorsun.
+
+Kurallar:
+- Tüm metinleri düzgün ve yazım hatası olmayan bir Türkçeyle yaz.
+- Egzersiz adlarını yaygın İngilizce adlarıyla yaz (ör. "Bench Press", "Romanian Deadlift"). Aynı hareket için haftadan haftaya aynı adı kullan; ilerleme takibi ada göre yapılıyor.
+- Her egzersizin "muscles" listesinde ilk eleman ana çalışan kas olsun. "tr" kısa Türkçe ad (ör. "Göğüs", "Ön omuz", "Arka bacak"), "en" İngilizce anatomik ad (ör. "pectoralis major", "anterior deltoid", "hamstrings").
+- Program her zaman Pazartesi'den Pazar'a tam 7 gün içerir. Antrenman olmayan günlerde rest=true, exercises boş liste, title "Dinlenme".
+- "title" kısa gün adı (ör. "Push Günü"), "focus" çalışan bölgeler (ör. "Göğüs · Omuz · Triceps").
+- "targetKg" önerilen çalışma ağırlığı ({birim}); vücut ağırlığı hareketlerinde 0. "restSec" setler arası dinlenme (saniye). "note" o egzersiz için tek cümlelik ipucu, yoksa boş metin.
+- Sporcunun antrenman günlerine, seans süresine, ekipmanına, sakatlık ve kısıtlarına mutlaka uy.
+- Önceki haftaların gerçek performansına ve önceki analizlerde verilen kararlara göre progresif yüklenme uygula; hedefleri gerçekçi tut.
+
+{koc_talimatlari}`,
+  program: `{hafta} ({hafta_tarih}) için antrenman programı yaz.
+
+{profil}
+
+{onceki_analizler}
+
+{gecmis}
+
+{son_hafta_kayitlari}
+
+{ek_not}`,
+  analysis: `{hafta} ({hafta_tarih}) kayıtlarını analiz et ve sonraki haftanın ({sonraki_hafta_tarih}) programını yaz.
+
+Alanlar:
+- summary: haftanın 2 kısa paragraflık özeti (paragrafları boş satırla ayır).
+- detailed: ayrıntılı analiz. Başlıklar "## " ile, maddeler "- " ile başlasın; **kalın** kullanabilirsin. Bölümler: Genel değerlendirme, Egzersiz bazında analiz, Toparlanma ve gün sonu notları, Beslenme, Vücut ağırlığı, Gelecek hafta için kararlar.
+- highlights: 3–6 kısa madde. type: "good" iyi giden, "warn" dikkat edilmesi gereken, "tip" öneri.
+- nextProgram: sonraki haftanın programı.
+
+Önceki analizlerde verilen kararların bu hafta uygulanıp uygulanmadığını ve sonuçlarını da değerlendir.
+
+{profil}
+
+{onceki_analizler}
+
+{gecmis}
+
+BU HAFTANIN KAYITLARI (setler kg×tekrar)
+{bu_hafta}
+
+{ek_not}`,
+};
+const PROMPT_VARS = {
+  system: ['birim', 'koc_talimatlari'],
+  program: ['hafta', 'hafta_tarih', 'profil', 'onceki_analizler', 'gecmis', 'son_hafta_kayitlari', 'ek_not', 'birim'],
+  analysis: ['hafta', 'hafta_tarih', 'sonraki_hafta_tarih', 'profil', 'onceki_analizler', 'gecmis', 'bu_hafta', 'ek_not', 'birim'],
+};
+const promptTpl = k => (S.settings.prompts && S.settings.prompts[k] && S.settings.prompts[k].trim()) ? S.settings.prompts[k] : DEFAULT_PROMPTS[k];
+function fillTpl(tpl, vars) {
+  return tpl.replace(/\{(\w+)\}/g, (m, k) => k in vars ? vars[k] : m).replace(/\n{3,}/g, '\n\n').trim();
+}
+// Bir haftadan önceki son N analizin özeti, önerileri ve kararları
+function previousAnalysesText(w, n) {
+  const ws = Object.keys(S.weeks).filter(x => x < w && S.weeks[x].analysis).sort().slice(-n);
+  if (!ws.length) return '';
+  return 'ÖNCEKİ ANALİZLER (eskiden yeniye)\n' + ws.map(x => {
+    const a = S.weeks[x].analysis;
+    const dec = (String(a.detailed || '').match(/#+[^\n]*karar[^\n]*\n([\s\S]*?)(?=\n#|$)/i) || [])[1];
+    return `### ${weekLabel(x)} analizi (${weekRange(x)})
+Özet: ${String(a.summary || '').replace(/\s*\n\s*/g, ' ')}
+${a.highlights && a.highlights.length ? 'Öne çıkanlar:\n' + a.highlights.map(h => `- [${h.type === 'good' ? 'iyi' : h.type === 'warn' ? 'dikkat' : 'öneri'}] ${h.text}`).join('\n') : ''}
+${dec ? 'Verilen kararlar:\n' + dec.trim() : ''}${a.extraNote ? '\nSporcunun o haftaki notu: ' + a.extraNote : ''}`.trim();
+  }).join('\n\n');
+}
+function promptVars(w, note, kind) {
+  const coach = S.settings.coachNotes.trim();
+  let lastLog = '';
+  for (let k = 1; k <= 4 && kind === 'program'; k++) {
+    const pw = addDays(w, -7 * k);
+    if (weekHasData(pw)) { lastLog = 'SON HAFTANIN DETAYLI KAYITLARI (setler kg×tekrar)\n' + weekLogText(pw); break; }
+  }
+  return {
+    birim: unit(),
+    koc_talimatlari: coach ? 'Sporcunun koç talimatları:\n' + coach : '',
+    hafta: weekLabel(w), hafta_tarih: weekRange(w), sonraki_hafta_tarih: weekRange(addDays(w, 7)),
+    profil: profileText(),
+    onceki_analizler: previousAnalysesText(w, 2),
+    gecmis: historyText(w, 4),
+    son_hafta_kayitlari: lastLog,
+    bu_hafta: kind === 'analysis' ? weekLogText(w) : '',
+    ek_not: note ? `SPORCUNUN BU HAFTAYA ÖZEL EK İSTEKLERİ (${kind === 'analysis' ? 'analizi ve sonraki haftanın programını' : 'programı'} yazarken öncelikli olarak dikkate al):\n${note}` : '',
+  };
+}
+function systemPrompt() { return fillTpl(promptTpl('system'), promptVars(ui.week, '', 'system')); }
+const buildPrompt = (kind, w, note) => fillTpl(promptTpl(kind), promptVars(w, note, kind));
+function profileText() {
+  const p = S.settings.profile;
+  return `SPORCU PROFİLİ
+- Yaş: ${p.age || '?'} · Boy: ${p.height || '?'} cm
+- Ana hedef: ${GOALS[p.goal] || p.goal} · Hedef kilo: ${p.targetWeight || '?'} ${unit()}
+- Deneyim: ${EXP[p.experience] || p.experience}
+- Antrenman günleri: ${p.trainingDays.length ? p.trainingDays.slice().sort().map(i => DNL[i]).join(', ') : 'belirtilmedi'} (seans ~${p.sessionMin} dk)
+- Ekipman: ${EQUIP[p.equipment] || p.equipment}
+- Sakatlık / kısıtlar: ${p.injuries.trim() || 'yok'}`;
+}
+function weekLogText(w) {
+  const prog = program(w); const out = [`### ${weekLabel(w)} (${weekRange(w)})`];
+  for (let i = 0; i < 7; i++) {
+    const date = addDays(w, i), p = prog && prog.days[i], dl = S.logs[date];
+    if (!p && !hasContent(date)) continue;
+    out.push(`\n${DNL[i]} ${fmtD(date)} — ${p ? (p.rest ? 'Dinlenme' : `${p.title}${p.focus ? ' (' + p.focus + ')' : ''}`) : 'Program yok'}`);
+    const seen = new Set();
+    if (p) for (const ex of p.exercises) {
+      seen.add(ex.id);
+      const l = dl && dl.ex[ex.id], ds = doneSetsOf(l);
+      out.push(`- ${ex.name} [hedef ${ex.sets}×${repsTxt(ex)}${ex.targetKg ? ' @ ' + ex.targetKg + ' ' + unit() : ''}]: ${ds.length ? ds.map(s => `${s.kg}×${s.reps}`).join(', ') : 'yapılmadı'}${l && l.note.trim() ? ` · Not: ${l.note.trim()}` : ''}`);
+    }
+    if (dl) for (const [id, l] of Object.entries(dl.ex)) {
+      if (seen.has(id) || !doneSetsOf(l).length) continue;
+      out.push(`- ${l.name}: ${doneSetsOf(l).map(s => `${s.kg}×${s.reps}`).join(', ')}${l.note.trim() ? ` · Not: ${l.note.trim()}` : ''}`);
+    }
+    if (dl) {
+      if (num(dl.weight)) out.push(`- Kilo: ${dl.weight} ${unit()}`);
+      if (dl.food.trim()) out.push(`- Yediklerim: ${dl.food.trim().replace(/\n+/g, ' | ')}`);
+      if (dl.endNote.trim()) out.push(`- Gün sonu notu: ${dl.endNote.trim().replace(/\n+/g, ' | ')}`);
+    }
+  }
+  return out.join('\n');
+}
+function weekShortText(w) {
+  const st = weekStats(w), tops = weekTops(w);
+  return `- ${weekLabel(w)} (${weekRange(w)}): ${st.days}/${st.planned} gün, ${st.sets} set, ${r1(st.vol / 1000)} ton${st.weight ? ', ort. kilo ' + r1(st.weight) : ''}. En iyi setler: ${Object.entries(tops).map(([n, t]) => `${n} ${t.kg}×${t.reps}`).join('; ') || '—'}`;
+}
+function historyText(w, n) {
+  const lines = [];
+  for (let k = n; k >= 1; k--) { const pw = addDays(w, -7 * k); if (weekHasData(pw)) lines.push(weekShortText(pw)); }
+  return lines.length ? 'ÖNCEKİ HAFTALAR (özet)\n' + lines.join('\n') : 'Önceki hafta kaydı yok.';
+}
+
+// ---- Sağlayıcıdan bağımsız JSON çağrısı ----
+async function callJSON(userText, schema) {
+  const p = S.settings.provider;
+  if (!curKey()) throw new UserErr("Önce Ayarlar'dan API anahtarını gir.");
+  if (!curModel()) throw new UserErr("Ayarlar'da model adını gir.");
+  if (p === 'anthropic') return callAnthropic(userText, schema); // SDK kendi tekrar denemesini yapıyor
+  // Yoğunluk (5xx) ve dakikalık sınır (429) hatalarında birkaç kez bekleyip tekrar dene
+  const waits = [5000, 15000, 30000];
+  for (let i = 0; ; i++) {
+    try { return p === 'gemini' ? await callGemini(userText, schema) : await callOpenAI(userText, schema); }
+    catch (e) {
+      const retry = e.status === 429 || e.status >= 500;
+      if (!retry || i >= waits.length || /quota|kota/i.test(e.message) && /day|günlük|per day/i.test(e.message)) throw e;
+      await new Promise(r => setTimeout(r, waits[i]));
+    }
+  }
+}
+const schemaHint = schema => `\n\nYanıtı SADECE aşağıdaki JSON şemasına uyan geçerli bir JSON nesnesi olarak ver. Başka hiçbir metin, açıklama veya kod bloğu ekleme.\nJSON şeması:\n${JSON.stringify(schema)}`;
+function parseJSONText(t) {
+  let s = String(t || '').trim().replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/, '');
+  const a = s.indexOf('{'), b = s.lastIndexOf('}');
+  if (a >= 0 && b > a) s = s.slice(a, b + 1);
+  return JSON.parse(s);
+}
+async function httpJSON(url, opts) {
+  let r;
+  try { r = await fetch(url, opts); }
+  catch { throw new UserErr('Bağlantı kurulamadı. İnternetini kontrol et; ya da bu servis tarayıcıdan doğrudan erişime izin vermiyor olabilir.'); }
+  const txt = await r.text(); let j = null;
+  try { j = JSON.parse(txt); } catch {}
+  if (!r.ok) {
+    const e = j && (Array.isArray(j) ? j[0] && j[0].error : j.error);
+    const m = (e && (e.message || (typeof e === 'string' ? e : ''))) || (j && j.message) || txt.slice(0, 200);
+    if (r.status === 401 || r.status === 403 || /api key not valid/i.test(m)) throw new UserErr('API anahtarı geçersiz veya yetkisiz. ' + m);
+    if (r.status === 404) throw new UserErr('Bulunamadı (model adı ya da adres yanlış olabilir). ' + m);
+    const err = new UserErr(
+      r.status === 429 ? 'İstek sınırına takıldı ya da ücretsiz kota doldu. ' + m
+      : r.status >= 500 ? `Servis şu an çok yoğun ya da hata veriyor (${r.status}). Biraz sonra tekrar dene veya daha hafif bir model seç. ${m}`
+      : `API hatası (${r.status}): ${m}`);
+    err.status = r.status;
+    throw err;
+  }
+  return j;
+}
+function openaiBase() {
+  if (S.settings.provider === 'openai') return 'https://api.openai.com/v1';
+  const b = String(S.settings.baseUrl || '').trim().replace(/\/+$/, '').replace(/\/chat\/completions$/, '');
+  if (!b) throw new UserErr("Ayarlar'da API adresini gir.");
+  return b;
+}
+async function callOpenAI(userText, schema) {
+  const strict = S.settings.provider === 'openai';
+  const url = openaiBase() + '/chat/completions';
+  const body = {
+    model: curModel(),
+    messages: [{ role: 'system', content: systemPrompt() }, { role: 'user', content: userText + (strict ? '' : schemaHint(schema)) }],
+    response_format: strict ? { type: 'json_schema', json_schema: { name: 'sabofit', strict: true, schema } } : { type: 'json_object' },
+  };
+  const opts = () => ({ method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + curKey() }, body: JSON.stringify(body) });
+  let j;
+  try { j = await httpJSON(url, opts()); }
+  catch (e) {
+    // OpenAI hata yanıtlarında tarayıcı ayrıntıyı okuyamıyor (CORS başlığı yok); kullanıcıyı Test et'e yönlendir
+    if (strict && /^Bağlantı kurulamadı/.test(e.message)) throw new UserErr("OpenAI isteği başarısız oldu. Ayarlar'da \"Test et\" ile anahtarı ve model adını kontrol et; sorun yoksa internet bağlantını kontrol et.");
+    // bazı uyumlu servisler response_format desteklemiyor
+    if (strict || !/response_format|json_object|json/i.test(e.message)) throw e;
+    delete body.response_format; j = await httpJSON(url, opts());
+  }
+  const c = j && j.choices && j.choices[0];
+  if (!c || !c.message) throw new UserErr('Yapay zekâdan boş yanıt geldi.');
+  if (c.message.refusal) throw new UserErr('Yapay zekâ isteği reddetti: ' + c.message.refusal);
+  if (c.finish_reason === 'length') throw new UserErr('Yanıt çok uzun olduğu için yarıda kesildi. Tekrar dene.');
+  return parseJSONText(c.message.content);
+}
+async function callGemini(userText, schema) {
+  const model = curModel().replace(/^models\//, '');
+  const j = await httpJSON(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json', 'x-goog-api-key': curKey() },
+    body: JSON.stringify({
+      systemInstruction: { parts: [{ text: systemPrompt() }] },
+      contents: [{ role: 'user', parts: [{ text: userText + schemaHint(schema) }] }],
+      generationConfig: { responseMimeType: 'application/json' },
+    }),
+  });
+  const c = j && j.candidates && j.candidates[0];
+  if (!c) throw new UserErr('Yapay zekâdan yanıt gelmedi' + (j && j.promptFeedback && j.promptFeedback.blockReason ? ` (engellendi: ${j.promptFeedback.blockReason})` : '') + '.');
+  if (c.finishReason === 'MAX_TOKENS') throw new UserErr('Yanıt çok uzun olduğu için yarıda kesildi. Tekrar dene.');
+  if (c.finishReason === 'SAFETY') throw new UserErr('Yapay zekâ isteği güvenlik nedeniyle reddetti.');
+  return parseJSONText(((c.content && c.content.parts) || []).map(x => x.text || '').join(''));
+}
+async function listModels() {
+  const p = S.settings.provider;
+  if (!curKey()) throw new UserErr('Önce API anahtarını gir.');
+  if (p === 'anthropic') { const c = await aiClient(); const page = await c.models.list({ limit: 100 }); return page.data.map(m => m.id); }
+  if (p === 'gemini') {
+    const j = await httpJSON('https://generativelanguage.googleapis.com/v1beta/models?pageSize=1000', { headers: { 'x-goog-api-key': curKey() } });
+    return (j.models || []).filter(m => (m.supportedGenerationMethods || []).includes('generateContent')).map(m => m.name.replace(/^models\//, ''));
+  }
+  const j = await httpJSON(openaiBase() + '/models', { headers: { Authorization: 'Bearer ' + curKey() } });
+  return (j.data || []).map(m => m.id).sort();
+}
+
+async function callAnthropic(userText, schema) {
+  const client = await aiClient();
+  const model = curModel();
+  const params = {
+    model, max_tokens: 32000,
+    system: systemPrompt(),
+    messages: [{ role: 'user', content: userText }],
+    output_config: { effort: 'high', format: { type: 'json_schema', schema } },
+  };
+  // Opus 5.5 / Sonnet 5.5: güvenlik reddinde sunucu tarafı yedek modele geçiş
+  const msg = /^claude-(opus|sonnet)-5-5$/.test(model)
+    ? await client.beta.messages.stream({ ...params, betas: ['server-side-fallback-2026-07-01'], fallbacks: 'default' }).finalMessage()
+    : await client.messages.stream(params).finalMessage();
+  if (msg.stop_reason === 'refusal') throw new UserErr('Yapay zekâ bu isteği yanıtlamayı reddetti.');
+  if (msg.stop_reason === 'max_tokens') throw new UserErr('Yanıt çok uzun olduğu için yarıda kesildi. Tekrar dene.');
+  const text = msg.content.filter(b => b.type === 'text').map(b => b.text).join('');
+  return JSON.parse(text);
+}
+
+async function generateProgram(w, note) {
+  const done = busy('Program hazırlanıyor', 'Yapay zekâ profilini, geçmiş kayıtlarını ve önceki analizleri inceliyor. Bu 1–2 dakika sürebilir.');
+  try {
+    const res = await callJSON(buildPrompt('program', w, note), PROGRAM_SCHEMA);
+    const prog = normalizeProgram(res); if (note) prog.extraNote = note;
+    S.weeks[w] = Object.assign(S.weeks[w] || {}, { program: prog });
+    save(); toast('Program hazır ✦');
+  } catch (e) { toast(errMsg(e), true); }
+  finally { done(); renderHome(); }
+}
+
+async function runAnalysis(w, auto, note) {
+  const done = busy(auto ? 'Otomatik haftalık analiz' : 'Hafta analiz ediliyor', 'Yapay zekâ setleri, notları, beslenmeyi ve kiloyu inceliyor. Bu 1–3 dakika sürebilir.');
+  try {
+    const res = await callJSON(buildPrompt('analysis', w, note), ANALYSIS_SCHEMA);
+    S.weeks[w] = S.weeks[w] || {};
+    S.weeks[w].analysis = {
+      createdAt: new Date().toISOString(), summary: String(res.summary || ''), detailed: String(res.detailed || ''),
+      highlights: Array.isArray(res.highlights) ? res.highlights : [], nextProgram: normalizeProgram(res.nextProgram), applied: false,
+      extraNote: note || '',
+    };
+    save();
+    if (!S.settings.requireApproval && !program(addDays(w, 7))) applyNext(w, true);
+    else toast('Analiz hazır ✦');
+  } catch (e) { toast(errMsg(e), true); }
+  finally { done(); renderHome(); }
+}
+
+function applyNext(w, silent) {
+  const a = S.weeks[w] && S.weeks[w].analysis; if (!a || !a.nextProgram) return;
+  const nw = addDays(w, 7);
+  if (program(nw) && !confirm(`${weekLabel(nw)} için zaten bir program var. Üzerine yazılsın mı?\nO haftaya girilmiş setler görünmez olabilir.`)) return;
+  S.weeks[nw] = Object.assign(S.weeks[nw] || {}, { program: normalizeProgram(a.nextProgram) });
+  a.applied = true; save();
+  toast(`Program ${weekLabel(nw)}'e uygulandı${silent ? ' (otomatik)' : ''}`);
+  renderHome();
+}
+
+async function autoCheck() {
+  const st = S.settings; if (!st.autoAnalysis || !curKey() || !curModel()) return;
+  const cur = mondayOf(new Date()), [h, m] = String(st.autoTime || '21:00').split(':').map(Number);
+  for (const w of [addDays(cur, -7), cur]) {
+    const due = parseD(addDays(w, +st.autoDay)); due.setHours(h || 0, m || 0, 0, 0);
+    if (new Date() >= due && !(S.weeks[w] && S.weeks[w].analysis) && weekHasData(w)) await runAnalysis(w, true);
+  }
+}
+
+// =====================================================================
+//  SÜREÇ
+// =====================================================================
+const NS = 'http://www.w3.org/2000/svg';
+const svgEl = (tag, attrs) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); return e; };
+function attachHover(svg, xs, show, hide) {
+  const pick = e => {
+    const r = svg.getBoundingClientRect(), vx = (e.clientX - r.left) * (svg.viewBox.baseVal.width / r.width);
+    let i = 0; xs.forEach((x, k) => { if (Math.abs(x - vx) < Math.abs(xs[i] - vx)) i = k; });
+    show(i, r.width / svg.viewBox.baseVal.width);
+  };
+  svg.addEventListener('pointermove', pick); svg.addEventListener('pointerdown', pick); svg.addEventListener('pointerleave', hide);
+}
+function axis(svg, W, P, min, max, y, ticks, fmt) {
+  for (let k = 0; k <= ticks; k++) {
+    const v = min + (max - min) * k / ticks, yy = y(v);
+    svg.append(svgEl('line', { x1: P.l, x2: W - P.r, y1: yy, y2: yy, stroke: '#2a2f3a', 'stroke-width': 1 }));
+    const t = svgEl('text', { x: P.l - 6, y: yy + 3, 'text-anchor': 'end' }); t.textContent = fmt(v); svg.append(t);
+  }
+}
+function xLabels(svg, xs, labels, H) {
+  const step = Math.ceil(xs.length / 7);
+  xs.forEach((x, i) => {
+    if (i % step && i !== xs.length - 1) return;
+    const t = svgEl('text', { x, y: H - 6, 'text-anchor': 'middle' }); t.textContent = labels[i]; svg.append(t);
+  });
+}
+function lineChart(box, labels, data, u) {
+  const tip = box.querySelector('.tip');
+  const W = 340, H = 170, P = { l: 34, r: 12, t: 12, b: 24 };
+  const min = Math.floor(Math.min(...data) - .5), max = Math.ceil(Math.max(...data) + .5);
+  const x = i => P.l + i * (W - P.l - P.r) / (data.length - 1);
+  const y = v => P.t + (max - v) / (max - min) * (H - P.t - P.b);
+  const svg = svgEl('svg', { viewBox: `0 0 ${W} ${H}` });
+  axis(svg, W, P, min, max, y, 4, v => v.toFixed(0));
+  const xs = data.map((_, i) => x(i)); xLabels(svg, xs, labels, H);
+  const d = data.map((v, i) => `${i ? 'L' : 'M'}${x(i)},${y(v)}`).join('');
+  svg.append(svgEl('path', { d: d + `L${x(data.length - 1)},${H - P.b}L${P.l},${H - P.b}Z`, fill: 'rgba(124,92,255,.12)' }));
+  svg.append(svgEl('path', { d, fill: 'none', stroke: '#7c5cff', 'stroke-width': 2, 'stroke-linejoin': 'round', 'stroke-linecap': 'round' }));
+  svg.append(svgEl('circle', { cx: x(data.length - 1), cy: y(data.at(-1)), r: 4, fill: '#7c5cff', stroke: '#181b22', 'stroke-width': 2 }));
+  const cross = svgEl('line', { y1: P.t, y2: H - P.b, stroke: '#8a91a3', 'stroke-width': 1, 'stroke-dasharray': '3 3', visibility: 'hidden' });
+  const dot = svgEl('circle', { r: 5, fill: '#7c5cff', stroke: '#181b22', 'stroke-width': 2, visibility: 'hidden' });
+  svg.append(cross, dot); box.prepend(svg);
+  attachHover(svg, xs, (i, s) => {
+    cross.setAttribute('x1', xs[i]); cross.setAttribute('x2', xs[i]); cross.setAttribute('visibility', 'visible');
+    dot.setAttribute('cx', xs[i]); dot.setAttribute('cy', y(data[i])); dot.setAttribute('visibility', 'visible');
+    tip.innerHTML = `<span>${esc(labels[i])}</span> <b>${r1(data[i])} ${esc(u)}</b>`;
+    tip.style.left = xs[i] * s + 'px'; tip.style.top = (y(data[i]) * s - 8) + 'px'; tip.style.display = 'block';
+  }, () => { cross.setAttribute('visibility', 'hidden'); dot.setAttribute('visibility', 'hidden'); tip.style.display = 'none'; });
+}
+function barChart(box, labels, data, u) {
+  const tip = box.querySelector('.tip');
+  const W = 340, H = 170, P = { l: 34, r: 8, t: 12, b: 24 };
+  const max = Math.max(5, Math.ceil(Math.max(...data) / 5) * 5);
+  const step = (W - P.l - P.r) / data.length, bw = Math.min(step - 6, 28);
+  const y = v => P.t + (max - v) / max * (H - P.t - P.b), base = H - P.b;
+  const svg = svgEl('svg', { viewBox: `0 0 ${W} ${H}` });
+  axis(svg, W, P, 0, max, y, 4, v => v.toFixed(0));
+  const xs = data.map((_, i) => P.l + i * step + step / 2); xLabels(svg, xs, labels, H);
+  const bars = data.map((v, i) => {
+    const x0 = xs[i] - bw / 2, yy = Math.min(y(v), base - 1), r = Math.min(4, (base - yy) / 2);
+    const b = svgEl('path', { d: `M${x0},${base}L${x0},${yy + r}Q${x0},${yy} ${x0 + r},${yy}L${x0 + bw - r},${yy}Q${x0 + bw},${yy} ${x0 + bw},${yy + r}L${x0 + bw},${base}Z`, fill: i === data.length - 1 ? '#7c5cff' : 'rgba(124,92,255,.45)' });
+    svg.append(b); return b;
+  });
+  box.prepend(svg);
+  attachHover(svg, xs, (i, s) => {
+    bars.forEach((b, k) => b.setAttribute('opacity', k === i ? 1 : .55));
+    tip.innerHTML = `<span>${esc(labels[i])}</span> <b>${r1(data[i])} ${esc(u)}</b>`;
+    tip.style.left = xs[i] * s + 'px'; tip.style.top = (y(data[i]) * s - 8) + 'px'; tip.style.display = 'block';
+  }, () => { bars.forEach(b => b.setAttribute('opacity', 1)); tip.style.display = 'none'; });
+}
+function sparkline(data) {
+  const mn = Math.min(...data), mx = Math.max(...data);
+  const px = i => i * 84 / (data.length - 1), py = v => 27 - (v - mn) / (mx - mn || 1) * 24;
+  return `<svg viewBox="0 0 84 30"><path d="${data.map((v, i) => `${i ? 'L' : 'M'}${px(i)},${py(v)}`).join('')}" fill="none" stroke="#7c5cff" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/><circle cx="84" cy="${py(data.at(-1))}" r="3" fill="#7c5cff"/></svg>`;
+}
+
+let range = 12;
+function renderProgress() {
+  const cur = mondayOf(new Date());
+  const all = dataWeeks().filter(w => w <= cur);
+  const weeks = range ? all.filter(w => w > addDays(cur, -7 * range)) : all;
+  $('pr-sub').textContent = all.length ? `Başlangıç: ${fmtD(all[0])} ${parseD(all[0]).getFullYear()} · ${all.length} hafta kayıt` : '';
+  if (!weeks.length) {
+    $('pr-main').innerHTML = `<section class="card empty"><div class="ico">📈</div><h3>Henüz kayıt yok</h3><p>Ana sayfada set, kilo veya not girdikçe gelişimin burada görünecek.</p></section>`;
+    return;
+  }
+  const stats = weeks.map(weekStats);
+  const trained = stats.reduce((a, s) => a + s.days, 0), planned = stats.reduce((a, s) => a + s.planned, 0);
+  const wts = weeks.map((w, i) => ({ w, v: stats[i].weight })).filter(x => x.v);
+  const vols = stats.map(s => s.vol);
+  const firstVol = vols.find(v => v > 0) || 0, lastVol = [...vols].reverse().find(v => v > 0) || 0;
+  let streak = 0;
+  for (let k = all.length - 1; k >= 0; k--) {
+    const st = weekStats(all[k]);
+    if (all[k] === cur && st.days < st.planned) continue; // devam eden hafta seriyi bozmaz
+    if (st.planned && st.days >= st.planned) streak++; else break;
+  }
+  const wDiff = wts.length >= 2 ? r1(wts.at(-1).v - wts[0].v) : null;
+  let html = `<div class="stats">
+    <div class="stat"><div class="label">Antrenman</div><div class="value">${trained}<small> gün</small></div><div class="trend muted">${planned ? `${planned} planlı · %${Math.round(trained / planned * 100)}` : '&nbsp;'}</div></div>
+    <div class="stat"><div class="label">Kilo</div><div class="value">${wDiff === null ? '—' : (wDiff > 0 ? '+' : wDiff < 0 ? '−' : '') + Math.abs(wDiff)}<small> ${esc(unit())}</small></div><div class="trend muted">${wts.length >= 2 ? `${r1(wts[0].v)} → ${r1(wts.at(-1).v)}` : 'yeterli ölçüm yok'}</div></div>
+    <div class="stat"><div class="label">Haftalık hacim</div><div class="value">${firstVol && lastVol ? (lastVol >= firstVol ? '+' : '−') + Math.abs(Math.round((lastVol / firstVol - 1) * 100)) : '—'}<small> %</small></div><div class="trend muted">${firstVol ? `${r1(firstVol / 1000)} → ${r1(lastVol / 1000)} ton` : '&nbsp;'}</div></div>
+    <div class="stat"><div class="label">Seri</div><div class="value">${streak}<small> hafta</small></div><div class="trend muted">eksiksiz program</div></div>
+  </div>
+  <section class="card"><div class="chart-head"><div><h3>Vücut ağırlığı</h3><p>Haftalık ortalama, ${esc(unit())}</p></div>
+    ${wts.length ? `<div class="big">${r1(wts.at(-1).v)}${wDiff !== null ? `<small class="${wDiff <= 0 ? 'up' : 'down'}">${wDiff <= 0 ? '▼' : '▲'} ${Math.abs(wDiff)} ${esc(unit())}</small>` : ''}</div>` : ''}</div>
+    ${wts.length >= 2 ? '<div class="chart" id="chart-weight"><div class="tip"></div></div>' : '<p class="muted" style="font-size:13px">Grafik için en az 2 haftalık kilo ölçümü gerekiyor.</p>'}</section>
+  <section class="card"><div class="chart-head"><div><h3>Haftalık hacim</h3><p>Toplam kaldırılan ağırlık, ton</p></div>
+    <div class="big">${r1(vols.at(-1) / 1000)}${vols.length >= 2 && vols.at(-2) ? `<small class="${vols.at(-1) >= vols.at(-2) ? 'up' : 'down'}">${vols.at(-1) >= vols.at(-2) ? '▲' : '▼'} %${Math.abs(Math.round((vols.at(-1) / vols.at(-2) - 1) * 100))} geçen hafta</small>` : ''}</div></div>
+    <div class="chart" id="chart-volume"><div class="tip"></div></div></section>`;
+
+  // Ana hareketler
+  const per = {};
+  weeks.forEach(w => { for (const [n, t] of Object.entries(weekTops(w))) (per[n] = per[n] || []).push(t); });
+  const lifts = Object.entries(per).filter(([, a]) => a.length >= 2 && a.some(t => t.kg > 0)).sort((a, b) => b[1].length - a[1].length).slice(0, 6);
+  if (lifts.length) html += `<div class="section-title">Ana hareketler</div><section class="card">${lifts.map(([n, a]) => {
+    const f = a[0], l = a.at(-1), dkg = r1(l.kg - f.kg), pct = f.kg ? Math.round((l.kg / f.kg - 1) * 100) : 0;
+    return `<div class="lift"><div><div class="n">${esc(n)}</div><div class="s">${f.kg} → ${l.kg} ${esc(unit())} × ${l.reps}</div></div>${sparkline(a.map(t => t.kg))}
+      <div class="r">${pct > 0 ? '+' : ''}${pct}%<small class="${dkg >= 0 ? 'up' : 'down'}">${dkg > 0 ? '+' : ''}${dkg} ${esc(unit())}</small></div></div>`;
+  }).join('')}</section>`;
+
+  // Kas grubu dağılımı (son 4 hafta, ana kas)
+  const last4 = weeks.slice(-4), mc = {};
+  last4.forEach(w => {
+    const prog = program(w);
+    for (let i = 0; i < 7; i++) {
+      const dl = S.logs[addDays(w, i)]; if (!dl) continue;
+      for (const [id, l] of Object.entries(dl.ex)) {
+        const n = doneSetsOf(l).length; if (!n) continue;
+        let ex = null; if (prog) for (const d of prog.days) { ex = d.exercises.find(e => e.id === id); if (ex) break; }
+        const m = ex && ex.muscles[0] ? ex.muscles[0].tr : 'Diğer';
+        mc[m] = (mc[m] || 0) + n;
+      }
+    }
+  });
+  const ms = Object.entries(mc).map(([m, v]) => [m, r1(v / last4.length)]).sort((a, b) => b[1] - a[1]).slice(0, 8);
+  if (ms.length) {
+    const mmax = ms[0][1];
+    html += `<div class="section-title">Kas grubu dağılımı</div><section class="card"><div class="chart-head" style="margin-bottom:12px"><div><h3>Haftalık set sayısı</h3><p>Son ${last4.length} hafta ortalaması · ana çalışan kas</p></div></div>
+      ${ms.map(([n, v]) => `<div class="mbar"><span>${esc(n)}</span><div class="track"><div class="fill" style="width:${v / mmax * 100}%"></div></div><span class="v">${v}</span></div>`).join('')}</section>`;
+  }
+
+  // Devamlılık (son 8 hafta)
+  const t = today();
+  let grid = `<div class="streak-row head"><span></span>${['P', 'S', 'Ç', 'P', 'C', 'C', 'P'].map(d => `<span>${d}</span>`).join('')}</div>`;
+  for (let k = 7; k >= 0; k--) {
+    const w = addDays(cur, -7 * k); let cells = '';
+    for (let i = 0; i < 7; i++) {
+      const d = addDays(w, i), p = plan(w, i);
+      const c = d > t ? 'future' : dayDone(d).sets ? 'done' : (p && !p.rest && d < t) ? 'miss' : '';
+      cells += `<span class="cell ${c}"></span>`;
+    }
+    grid += `<div class="streak-row"><span class="wk">${weekNo(w) >= 1 ? 'H' + weekNo(w) : '—'}</span>${cells}</div>`;
+  }
+  html += `<div class="section-title">Devamlılık</div><section class="card"><div class="streak">${grid}</div>
+    <div class="legend"><span><i style="background:var(--ok)"></i>Yapıldı</span><span><i style="border:1.5px dashed #ff6b6b"></i>Kaçırıldı</span><span><i style="background:var(--surface-2)"></i>Dinlenme</span></div></section>`;
+
+  // Geçmiş haftalar
+  html += `<div class="section-title">Geçmiş haftalar</div><section class="card">${[...all].reverse().map(w => {
+    const st = weekStats(w);
+    return `<button class="week-item" data-week="${w}"><span class="wn">${weekNo(w)}</span><span class="wi"><div class="wt">${weekLabel(w)} · ${fmtD(w)} – ${fmtD(addDays(w, 6))}</div>
+      <div class="ws">${st.days}/${st.planned || '—'} gün · ${st.sets} set${st.weight ? ' · ' + r1(st.weight) + ' ' + esc(unit()) : ''}${S.weeks[w] && S.weeks[w].analysis ? ' · ✦ analiz' : ''}</div></span><span class="go">›</span></button>`;
+  }).join('')}</section>`;
+
+  $('pr-main').innerHTML = html;
+  const labels = weeks.map(w => 'H' + weekNo(w));
+  if (wts.length >= 2) lineChart($('chart-weight'), wts.map(x => 'H' + weekNo(x.w)), wts.map(x => x.v), unit());
+  barChart($('chart-volume'), labels, vols.map(v => v / 1000), 'ton');
+}
+$('range').onclick = e => {
+  const b = e.target.closest('button'); if (!b) return;
+  range = +b.dataset.n;
+  $('range').querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b));
+  renderProgress();
+};
+$('pr-main').addEventListener('click', e => {
+  const b = e.target.closest('.week-item'); if (b) openWeek(b.dataset.week);
+});
+
+// ---------- Geçmiş hafta detayı ----------
+let wdWeek = null;
+function openWeek(w) {
+  wdWeek = w;
+  $('progress-overview').hidden = true; $('week-detail').hidden = false;
+  setWdTab('log'); renderWeekDetail(); window.scrollTo(0, 0);
+}
+function setWdTab(tab) {
+  $('wd-tabs').querySelectorAll('button').forEach(x => x.classList.toggle('on', x.dataset.tab === tab));
+  $('wd-log').hidden = tab !== 'log'; $('wd-ai').hidden = tab !== 'ai';
+}
+function renderWeekDetail() {
+  const w = wdWeek, st = weekStats(w), prog = program(w);
+  $('wd-title').textContent = weekLabel(w); $('wd-date').textContent = weekRange(w);
+  let html = `<div class="mini-stats"><div><b>${st.days}/${st.planned || '—'}</b><span>Gün</span></div><div><b>${st.sets}</b><span>Set</span></div>
+    <div><b>${r1(st.vol / 1000)}</b><span>Ton</span></div><div><b>${st.weight ? r1(st.weight) : '—'}</b><span>${esc(unit())}</span></div></div>
+    <div style="display:flex;flex-direction:column;gap:10px">`;
+  const best = {}; // haftadan önceki en iyi kg (rekor işaretlemek için)
+  let firstOpen = true;
+  for (let i = 0; i < 7; i++) {
+    const date = addDays(w, i), p = prog && prog.days[i], dl = S.logs[date];
+    if (!hasContent(date)) {
+      html += `<div class="rest-row"><span>${DN[i]} · ${fmtD(date)}</span><span>${p && !p.rest ? 'Yapılmadı' : p ? 'Dinlenme' : 'Kayıt yok'}</span></div>`;
+      continue;
+    }
+    const exs = Object.values(dl.ex).filter(e => doneSetsOf(e).length || e.note.trim());
+    const dd = dayDone(date);
+    html += `<details class="card detail"${firstOpen ? ' open' : ''}>
+      <summary><div><div>${DN[i]} · ${fmtD(date)}${p && !p.rest ? ' · ' + esc(p.title) : ''}</div>
+      <div class="hint">${dd.sets} set · ${exs.length} egzersiz${num(dl.weight) ? ' · ' + esc(dl.weight) + ' ' + esc(unit()) : ''}</div></div><span class="chev">▾</span></summary>
+      <div class="detail-body">
+        ${exs.map(e => {
+          if (!(e.name in best)) { const pt = prevTop(e.name, w); best[e.name] = pt ? pt.kg : Infinity; }
+          return `<div class="ex-block"><div class="t">${esc(e.name)}</div>
+            <div class="set-chips">${doneSetsOf(e).map(s => { const pr = num(s.kg) > best[e.name]; if (pr) best[e.name] = num(s.kg); return `<span class="${pr ? 'pr' : ''}">${esc(s.kg)}×${esc(s.reps)}</span>`; }).join('') || '<span>set yok</span>'}</div>
+            ${e.note.trim() ? `<div class="note">${esc(e.note)}</div>` : ''}</div>`;
+        }).join('')}
+        <div class="day-log">
+          ${num(dl.weight) ? `<div><div class="k">⚖️ Kilo</div><div class="v">${esc(dl.weight)} ${esc(unit())}</div></div>` : ''}
+          ${dl.food.trim() ? `<div><div class="k">🍽️ Yediklerim</div><div class="v">${esc(dl.food)}</div></div>` : ''}
+          ${dl.endNote.trim() ? `<div><div class="k">🌙 Gün sonu notu</div><div class="v">${esc(dl.endNote)}</div></div>` : ''}
+        </div>
+      </div></details>`;
+    firstOpen = false;
+  }
+  $('wd-log').innerHTML = html + '</div>';
+  const a = S.weeks[w] && S.weeks[w].analysis;
+  $('wd-ai').innerHTML = a
+    ? `<div class="ai-status"><span class="pulse"></span>Analiz: ${fmtDT(a.createdAt)}</div>${noteBlock(a.extraNote)}${analysisBlocks(a)}`
+    : `<section class="card empty"><div class="ico">✦</div><h3>Bu hafta için analiz yok</h3><p>Haftanın kayıtlarını yapay zekâya analiz ettirebilirsin.</p>
+       <button class="primary-btn" data-act="analyze"${weekHasData(w) ? '' : ' disabled'}>✦ Haftayı analiz et</button></section>`;
+}
+$('week-back').onclick = () => { $('week-detail').hidden = true; $('progress-overview').hidden = false; renderProgress(); window.scrollTo(0, 0); };
+$('wd-tabs').onclick = e => { const b = e.target.closest('button'); if (b) setWdTab(b.dataset.tab); };
+$('wd-ai').addEventListener('click', async e => {
+  const b = e.target.closest('button'); if (!b) return;
+  if (b.dataset.act === 'analyze') {
+    const n = await askAnalysisNote(wdWeek); if (n === null) return;
+    await runAnalysis(wdWeek, false, n); renderWeekDetail();
+  }
+  if (b.dataset.act === 'copy-detail') copyText(S.weeks[wdWeek].analysis.detailed);
+});
+
+// =====================================================================
+//  AYARLAR
+// =====================================================================
+function getK(path) { return path.split('.').reduce((o, k) => o[k], S.settings); }
+function setK(path, v) { const ks = path.split('.'), last = ks.pop(); ks.reduce((o, k) => o[k], S.settings)[last] = v; }
+function renderSettings() {
+  document.querySelectorAll('#page-settings [data-k]').forEach(el => {
+    const v = getK(el.dataset.k);
+    if (el.classList.contains('seg')) el.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.v === String(v)));
+    else if (el.type === 'checkbox') el.checked = !!v;
+    else el.value = v ?? '';
+  });
+  const pv = S.settings.provider, info = PROVIDERS[pv] || PROVIDERS.compat;
+  $('s-key').value = S.settings.keys[pv] || ''; $('s-key').placeholder = info.keyPh;
+  $('s-model').value = S.settings.models[pv] || ''; $('s-model').placeholder = info.modelPh;
+  $('f-base').hidden = pv !== 'compat';
+  renderModelSelect();
+  if (!$('prompt-editor').contains(document.activeElement)) renderPromptEditor();
+  const td = S.settings.profile.trainingDays;
+  $('s-days').innerHTML = DN.map((d, i) => `<button data-i="${i}" class="${td.includes(i) ? 'on' : ''}">${d}</button>`).join('');
+  const lb = S.settings.lastBackup;
+  $('s-lastbackup').textContent = lb ? fmtDT(lb) : 'Henüz yedek alınmadı';
+  const kb = r1(new Blob([localStorage.getItem(STORE_KEY) || '']).size / 1024);
+  $('s-about').innerHTML = `SaboFit · v${APP_VERSION}<br>Veriler bu cihazda saklanıyor · Kullanılan alan: ${kb} KB`;
+}
+document.querySelectorAll('#page-settings [data-k]').forEach(el => {
+  if (el.classList.contains('seg')) {
+    el.addEventListener('click', e => {
+      const b = e.target.closest('button'); if (!b) return;
+      setK(el.dataset.k, b.dataset.v); save();
+      el.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b));
+    });
+    return;
+  }
+  el.addEventListener(el.tagName === 'SELECT' || el.type === 'checkbox' ? 'change' : 'input', () => {
+    const v = el.type === 'checkbox' ? el.checked : el.hasAttribute('data-num') ? +el.value : el.value;
+    setK(el.dataset.k, v); saveSoon();
+    if (el.dataset.k === 'provider') renderSettings();
+    if (el.dataset.k === 'provider' || el.dataset.k === 'baseUrl') setConn('idle', 'Test edilmedi');
+  });
+});
+// Sağlayıcıya özel alanlar (anahtar, model)
+document.querySelectorAll('#page-settings [data-pk]').forEach(el => el.addEventListener('input', () => {
+  S.settings[el.dataset.pk][S.settings.provider] = el.value.trim(); saveSoon();
+  if (el.id === 's-model') renderModelSelect(); else setConn('idle', 'Test edilmedi');
+}));
+// ---------- Prompt düzenleyici ----------
+const PROMPT_TITLES = {
+  system: ['Sistem talimatı', 'Her istekte giden temel kurallar (koçun kimliği ve kuralları)'],
+  program: ['Program oluşturma', '"Yapay zekâ ile program oluştur" dediğinde giden metin'],
+  analysis: ['Haftalık analiz', '"Haftayı analiz et" ve otomatik analizde giden metin (sonraki haftanın planı dahil)'],
+};
+const VAR_DESC = {
+  birim: 'Ağırlık birimi (kg/lb)', koc_talimatlari: 'Yukarıdaki "Koç talimatları" kutusu',
+  hafta: 'Hafta adı (ör. Hafta 5)', hafta_tarih: 'Haftanın tarih aralığı', sonraki_hafta_tarih: 'Sonraki haftanın tarih aralığı',
+  profil: 'Profil ve hedefler bilgileri', onceki_analizler: 'Son 2 haftanın analiz özeti, önerileri ve kararları',
+  gecmis: 'Önceki 4 haftanın özeti (gün, set, hacim, kilo, en iyi setler)',
+  son_hafta_kayitlari: 'Kaydı olan son haftanın tüm setleri, notları, yemekleri', bu_hafta: 'Analiz edilen haftanın tüm kayıtları',
+  ek_not: 'Butona basınca açılan pencereye yazdığın not',
+};
+function renderPromptEditor() {
+  const box = $('prompt-editor');
+  box.querySelectorAll('details').forEach(d => d.remove());
+  for (const k of ['system', 'program', 'analysis']) {
+    const custom = !!(S.settings.prompts[k] && S.settings.prompts[k].trim());
+    const d = document.createElement('details'); d.dataset.p = k;
+    d.innerHTML = `<summary><div><div class="rt">${PROMPT_TITLES[k][0]}${custom ? '<span class="tag-custom">düzenlendi</span>' : ''}</div><div class="rs">${PROMPT_TITLES[k][1]}</div></div><span class="chev">▾</span></summary>
+      <div class="pbody">
+        <textarea class="area" spellcheck="false">${esc(promptTpl(k))}</textarea>
+        <div class="vars">${PROMPT_VARS[k].map(v => `<code title="${esc(VAR_DESC[v])}" data-v="${v}">{${v}}</code>`).join('')}</div>
+        <div class="help">Değişkene dokunursan imlecin olduğu yere eklenir. Üzerine gelince ne içerdiği görünür.</div>
+        <div class="btn-row" style="margin-top:10px"><button data-a="reset">Varsayılana dön</button><button data-a="preview">👁 Önizle</button></div>
+      </div>`;
+    box.append(d);
+  }
+}
+$('prompt-editor').addEventListener('input', e => {
+  const d = e.target.closest('details'); if (!d || e.target.tagName !== 'TEXTAREA') return;
+  const v = e.target.value;
+  S.settings.prompts[d.dataset.p] = v.trim() === DEFAULT_PROMPTS[d.dataset.p].trim() ? '' : v;
+  saveSoon();
+});
+$('prompt-editor').addEventListener('click', e => {
+  const d = e.target.closest('details'); if (!d) return;
+  const k = d.dataset.p, ta = d.querySelector('textarea');
+  const code = e.target.closest('code[data-v]');
+  if (code) {
+    const ins = `{${code.dataset.v}}`, s = ta.selectionStart ?? ta.value.length;
+    ta.value = ta.value.slice(0, s) + ins + ta.value.slice(ta.selectionEnd ?? s);
+    ta.focus(); ta.selectionStart = ta.selectionEnd = s + ins.length;
+    ta.dispatchEvent(new Event('input', { bubbles: true }));
+    return;
+  }
+  const b = e.target.closest('button[data-a]'); if (!b) return;
+  if (b.dataset.a === 'reset') {
+    if (!confirm(`"${PROMPT_TITLES[k][0]}" varsayılan haline dönsün mü? Yaptığın değişiklikler silinir.`)) return;
+    S.settings.prompts[k] = ''; save(); renderPromptEditor();
+    $('prompt-editor').querySelector(`details[data-p="${k}"]`).open = true;
+    toast('Varsayılana döndü');
+  }
+  if (b.dataset.a === 'preview') showPromptPreview(k);
+});
+function showPromptPreview(k) {
+  const w = ui.week, ex = '(Butona basınca açılan pencereye yazdığın not burada olur)';
+  const text = k === 'system' ? systemPrompt()
+    : `===== SİSTEM TALİMATI =====\n${systemPrompt()}\n\n===== İSTEK (${weekLabel(w)}) =====\n${buildPrompt(k, w, ex)}${S.settings.provider === 'anthropic' || S.settings.provider === 'openai' ? '' : '\n\n(+ Seçili sağlayıcı için cevap formatı (JSON şeması) otomatik eklenir)'}`;
+  const o = document.createElement('div'); o.className = 'overlay';
+  o.innerHTML = `<div class="box ask"><h3>Önizleme · ${PROMPT_TITLES[k][0]}</h3><p>Ana sayfada seçili hafta (${esc(weekLabel(w))}) için yapay zekâya gidecek metin.</p>
+    <div class="preview-text">${esc(text)}</div>
+    <div class="btn-row"><button data-r="copy">⧉ Kopyala</button><button class="go" data-r="close">Kapat</button></div></div>`;
+  document.body.append(o);
+  o.addEventListener('click', e => {
+    const b = e.target.closest('button');
+    if (b && b.dataset.r === 'copy') return copyText(text);
+    if (b || e.target === o) o.remove();
+  });
+}
+
+// "Test et" ile gelen model listesi (sağlayıcı başına saklanır)
+function renderModelSelect() {
+  const pv = S.settings.provider, ids = (S.settings.modelLists && S.settings.modelLists[pv]) || [], sel = $('s-model-sel');
+  sel.hidden = !ids.length;
+  if (!ids.length) return;
+  const cur = curModel();
+  sel.innerHTML = `<option value="">— Listeden model seç (${ids.length}) —</option>` +
+    ids.map(id => `<option value="${esc(id)}"${id === cur ? ' selected' : ''}>${esc(id)}</option>`).join('');
+  $('s-model').placeholder = 'veya model adını elle yaz';
+}
+$('s-model-sel').onchange = e => {
+  if (!e.target.value) return;
+  S.settings.models[S.settings.provider] = e.target.value; $('s-model').value = e.target.value; save();
+  setConn('', 'Model seçildi: ' + e.target.value);
+};
+$('s-days').onclick = e => {
+  const b = e.target.closest('button'); if (!b) return;
+  const i = +b.dataset.i, td = S.settings.profile.trainingDays;
+  const k = td.indexOf(i); if (k >= 0) td.splice(k, 1); else td.push(i);
+  td.sort(); b.classList.toggle('on'); save();
+};
+$('key-toggle').onclick = e => {
+  const k = $('s-key'); k.type = k.type === 'password' ? 'text' : 'password';
+  e.target.textContent = k.type === 'password' ? 'Göster' : 'Gizle';
+};
+function setConn(state, text) {
+  const el = $('s-conn'); el.className = 'state ' + state; el.lastElementChild.textContent = text;
+}
+$('s-test').onclick = async () => {
+  setConn('idle', 'Test ediliyor...');
+  try {
+    const ids = await listModels();
+    S.settings.modelLists = Object.assign({}, S.settings.modelLists, { [S.settings.provider]: ids }); save();
+    renderModelSelect();
+    const m = curModel();
+    if (m && ids.length && !ids.includes(m)) setConn('bad', `Anahtar çalışıyor ama "${m}" modeli listede yok. Yukarıdaki listeden bir model seç.`);
+    else setConn('', `Bağlantı başarılı · ${ids.length} model bulundu${m ? '' : ' — yukarıdaki listeden bir model seç'}`);
+  } catch (e) { setConn('bad', errMsg(e)); }
+};
+
+// ---------- Yedekleme ----------
+function exportBackup() {
+  const data = JSON.parse(JSON.stringify(S)); data.settings.keys = {};
+  data.exportedAt = new Date().toISOString();
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([JSON.stringify(data, null, 1)], { type: 'application/json' }));
+  a.download = `sabofit-yedek-${today()}.json`; a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  S.settings.lastBackup = new Date().toISOString(); save();
+  toast('Yedek indirildi'); renderSettings();
+  if (!$('page-home').hidden) renderHome();
+}
+$('b-export').onclick = exportBackup;
+$('b-import').onclick = () => $('import-file').click();
+$('import-file').onchange = async e => {
+  const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+  try {
+    const d = JSON.parse(await f.text());
+    if (!d || typeof d.weeks !== 'object' || typeof d.logs !== 'object') throw new Error('format');
+    if (!confirm('Yedek yüklenecek ve bu cihazdaki tüm kayıtların yerini alacak. Devam edilsin mi?')) return;
+    const keys = S.settings.keys;
+    S = normalizeData(d); S.settings.keys = Object.assign({}, keys, S.settings.keys);
+    save(); renderSettings(); toast('Yedek yüklendi');
+  } catch { toast('Dosya okunamadı. Geçerli bir SaboFit yedeği seç.', true); }
+};
+$('b-copy').onclick = () => {
+  const ws = dataWeeks();
+  if (!ws.length) return toast('Kopyalanacak kayıt yok', true);
+  const parts = [profileText()];
+  for (const w of ws) {
+    parts.push(weekLogText(w));
+    const a = S.weeks[w] && S.weeks[w].analysis;
+    if (a) parts.push(`Yapay zekâ özeti: ${a.summary}`);
+  }
+  copyText(parts.join('\n\n'));
+};
+$('b-delete').onclick = () => {
+  if (!confirm('Tüm antrenman kayıtları, programlar ve analizler silinecek. Ayarlar korunur. Emin misin?')) return;
+  if (!confirm('Bu işlem geri alınamaz. Önce yedek almadıysan "İptal" de. Silinsin mi?')) return;
+  S.weeks = {}; S.logs = {}; save(); renderSettings(); toast('Tüm kayıtlar silindi');
+};
+
+// =====================================================================
+//  SAYFA GEÇİŞİ VE BAŞLANGIÇ
+// =====================================================================
+document.querySelectorAll('.nav-item[data-page]').forEach(b => b.addEventListener('click', () => {
+  document.querySelectorAll('.nav-item').forEach(x => x.classList.toggle('active', x === b));
+  const pg = b.dataset.page;
+  ['home', 'progress', 'settings'].forEach(p => $('page-' + p).hidden = pg !== p);
+  if (pg === 'home') renderHome();
+  if (pg === 'progress') { $('week-detail').hidden = true; $('progress-overview').hidden = false; renderProgress(); }
+  if (pg === 'settings') renderSettings();
+  window.scrollTo(0, 0);
+}));
+
+renderHome();
+renderSettings();
+autoCheck();
+</script>
+</body>
+</html>
