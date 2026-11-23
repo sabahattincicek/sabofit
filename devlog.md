@@ -2,6 +2,12 @@
 
 > En son yapılan iş en üstte. Format: `## YYYY-MM-DD HH:MM` + madde madde yapılanlar.
 
+## 2026-11-24 04:00
+- Git reposu oluşturuldu (`main`), `.gitignore` eklendi. Yayın öncesi dosyalarda API anahtarı taraması yapıldı (temiz).
+- GitHub'a **public** repo olarak gönderildi: https://github.com/sabahattincicek/sabofit
+- GitHub Pages açıldı (kaynak: `main` / kök): https://sabahattincicek.github.io/sabofit/
+- Not: Veriler (kayıtlar, API anahtarları) sitede değil, her cihazın kendi tarayıcısında tutuluyor. Repo public olduğu için `devlog.md`, `roadmap.md`, `CLAUDE.md` de herkese açık.
+
 ## 2026-11-24 03:40
 - **Düzenlenebilir prompt şablonları:** Ayarlar'a "Yapay zekâ talimatları (prompt)" bölümü eklendi. 3 şablon: Sistem talimatı, Program oluşturma, Haftalık analiz. `{değişken}` yer tutucuları (`{profil}`, `{gecmis}`, `{onceki_analizler}`, `{son_hafta_kayitlari}`, `{bu_hafta}`, `{ek_not}`, `{hafta}`, `{hafta_tarih}`, `{sonraki_hafta_tarih}`, `{birim}`, `{koc_talimatlari}`); değişkene dokununca imlece ekleniyor. "Varsayılana dön" ve "👁 Önizle" (seçili hafta için giden tam metin + kopyala). Varsayılanla aynı/boş şablon `settings.prompts[k] = ''` olarak saklanır → varsayılan güncellenirse otomatik gelir. JSON şeması şablona dahil değil, otomatik ekleniyor.
 - **Geçmiş bağlamı genişletildi:** Daha önce program oluştururken sadece profil + önceki 4 haftanın özeti, analizde ise bunlara ek olarak haftanın kayıtları gidiyordu; önceki analizler hiç gitmiyordu. Artık:
