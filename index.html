@@ -475,7 +475,15 @@
     padding: 10px 14px; font-size: 13px; max-width: calc(100% - 32px); width: max-content;
     box-shadow: 0 6px 24px rgba(0, 0, 0, .4);
   }
-  .toast.err { border-color: #ff6b6b; color: #ffb3b3; }
+  .toast.err {
+    border-color: #ff6b6b; color: #ffb3b3; display: flex; align-items: flex-start; gap: 10px;
+    max-height: 50vh; overflow: auto; -webkit-user-select: text; user-select: text;
+  }
+  .toast.err span { flex: 1; white-space: pre-wrap; word-break: break-word; }
+  .toast.err .x {
+    flex: none; width: 26px; height: 26px; border-radius: 7px; background: var(--surface-2);
+    color: var(--text); font-size: 14px; line-height: 1; -webkit-user-select: none; user-select: none;
+  }
   .banner {
     display: flex; align-items: center; justify-content: space-between; gap: 10px;
     background: rgba(255, 184, 77, .1); border: 1px solid rgba(255, 184, 77, .35); color: #ffd59a;
@@ -931,8 +939,17 @@ function normalizeProgram(p) {
 let toastTimer;
 function toast(msg, err) {
   document.querySelectorAll('.toast').forEach(t => t.remove());
-  const t = document.createElement('div'); t.className = 'toast' + (err ? ' err' : ''); t.textContent = msg;
-  document.body.append(t); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.remove(), err ? 6000 : 3000);
+  clearTimeout(toastTimer);
+  const t = document.createElement('div'); t.className = 'toast' + (err ? ' err' : '');
+  if (err) { // hata: kendiliğinden kaybolmaz, metin seçilip kopyalanabilir, ✕ ile kapanır
+    t.innerHTML = '<span></span><button class="x" aria-label="Kapat">✕</button>';
+    t.firstChild.textContent = msg;
+    t.lastChild.onclick = () => t.remove();
+  } else {
+    t.textContent = msg;
+    toastTimer = setTimeout(() => t.remove(), 3000);
+  }
+  document.body.append(t);
 }
 function busy(title, text) {
   const o = document.createElement('div'); o.className = 'overlay';

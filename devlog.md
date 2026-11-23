@@ -2,6 +2,9 @@
 
 > En son yapılan iş en üstte. Format: `## YYYY-MM-DD HH:MM` + madde madde yapılanlar.
 
+## 2026-11-24 05:30
+- Hata bildirimleri artık kendiliğinden kaybolmuyor: sağ üstte ✕ ile kapanıyor, metin seçilip kopyalanabiliyor (uzun hatalar kaydırılabilir). Başarı bildirimleri eskisi gibi 3 sn sonra kayboluyor.
+
 ## 2026-11-24 05:15
 - **Eski uygulamadan veri taşıma (antrenman-defteri → SaboFit):** Kullanıcının eski yedeği (`Desktop/yedek.txt`, surum 2) bir kerelik, repoya girmeyen bir script ile SaboFit yedek formatına çevrildi → `Desktop/sabofit-yedek.json`.
   - 7 hafta (5 Ekim – 22 Kasım), 32 gün, 422 set; programlar (gün başlığı, set×tekrar, AI egzersiz notları, kaslar Latince→Türkçe), gün notları → "Gün sonu notu", yemekler, kilo ölçümleri (2), 9 Kasım analizi (detaylı metin, "HAFTALIK NOT" maddeleri → öneriler, sonraki haftanın programı), 16 Kasım program notu → 9 Kasım analizine "Gelecek hafta için kararlar" olarak.
